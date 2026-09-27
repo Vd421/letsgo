@@ -1,0 +1,28 @@
+# Dependencies (recreated with `npm install`)
+node_modules/
+
+# Environment variables: SECRETS, never commit!
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+
+# Test coverage reports
+coverage/
+
+# OS junk files
+.DS_Store
+Thumbs.db
+
+# Claude Code personal settings (per-person, not shared)
+.claude/settings.local.json
+
+# Python (for evals later)
+__pycache__/
+.venv/
