@@ -1,0 +1,6 @@
+{
+  "name": "@replay/dashboard",
+  "version": "0.0.0",
+  "private": true,
+  "description": "React dashboard: list and replay sessions, view AI summaries"
+}

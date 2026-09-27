@@ -27,10 +27,17 @@ AI summaries/bug detection via the Claude API. Python used later for AI evals.
 - Infra: Docker (local Postgres + Redis), GitHub Actions for CI
 
 ## Commands
-(None yet. Add each one here as we create it: install, dev, test, build.)
+Run from the repo root:
+- `npm install`          → install packages for all workspaces
+- `npm run lint`         → ESLint: find likely bugs
+- `npm run format`       → Prettier: auto-format all files
+- `npm run format:check` → Prettier: check formatting without changing files
 
 ## Current phase
-Phase 0: repo setup. No app code exists yet.
+Phase 0: repo setup. Steps 1–8 done (git, .gitignore, workspaces, TypeScript, Prettier/ESLint, .env.example).
+Next: Step 9 Docker Compose (Postgres + Redis), Step 10 GitHub Actions CI, Step 11 README.
+No app code exists yet.
+Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
 
 ## About the developer
 vd is a beginner learning full-stack development by building this project.

@@ -1,0 +1,29 @@
+{
+  // Shared TypeScript rules. Each app's own tsconfig.json "extends" this file
+  // and adds app-specific settings (e.g. module system, JSX for React).
+  "compilerOptions": {
+    // Which JavaScript version to output. ES2022 runs on Node 22+ and modern browsers.
+    "target": "ES2022",
+
+    // Turn on all strict type checks. Catches the most bugs.
+    "strict": true,
+
+    // Error on switch cases that fall through by accident.
+    "noFallthroughCasesInSwitch": true,
+
+    // Every file must be checkable on its own (needed by Vite and other fast tools).
+    "isolatedModules": true,
+
+    // Smooth over differences between old (CommonJS) and new (ES module) packages.
+    "esModuleInterop": true,
+
+    // Allow `import data from "./file.json"`.
+    "resolveJsonModule": true,
+
+    // Treat `File.ts` and `file.ts` as different, so code works on Linux too.
+    "forceConsistentCasingInFileNames": true,
+
+    // Don't type-check inside node_modules (faster, and not our code).
+    "skipLibCheck": true
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "@replay/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Types shared by frontend and backend"
+}

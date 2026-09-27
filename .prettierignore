@@ -1,0 +1,9 @@
+# Files Prettier should never reformat
+node_modules/
+dist/
+build/
+coverage/
+package-lock.json
+
+# Hand-written docs keep their own formatting
+*.md
