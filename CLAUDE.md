@@ -38,9 +38,17 @@ Run from the repo root:
 Docker Desktop must be running first ("Engine running").
 
 ## Current phase
-Phase 0: repo setup. Steps 1–9 done (git, .gitignore, workspaces, TypeScript, Prettier/ESLint,
-.env.example, Docker Compose). Next: Step 10 GitHub Actions CI, Step 11 README.
-No app code exists yet.
+Phase 0 (repo setup) COMPLETE on 2026-09-29: git + GitHub, .gitignore/.gitattributes, npm workspaces,
+TypeScript, ESLint + Prettier, .env.example, Docker Compose (Postgres + Redis), GitHub Actions CI
+(.github/workflows/ci.yml runs lint + format:check), README.
+Next: Phase 1 (not planned yet; make a plan with vd first). No app code exists yet.
+
+## Git workflow (what we actually do)
+- Remote: https://github.com/Vd421/letsgo (`origin`), default branch `main`.
+- Per feature: new branch (e.g. `setup/ci`, `feature/express-server`) → commit → push →
+  vd opens + merges the Pull Request on github.com (no `gh` CLI installed) → `git pull` on main
+  → delete the branch.
+- Guide PRs one click at a time; vd finds long multi-step instructions hard to follow.
 Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
 
 ## About the developer
