@@ -1,0 +1,38 @@
+# Local development services for Replay: Postgres + Redis.
+# Start: npm run services:up    Stop: npm run services:down
+name: replay
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      # Local-only credentials (match DATABASE_URL in .env.example). Not real secrets.
+      POSTGRES_USER: replay
+      POSTGRES_PASSWORD: replay
+      POSTGRES_DB: replay
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U replay -d replay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+# Named volumes keep data when containers are stopped or recreated.
+volumes:
+  postgres-data:
+  redis-data:

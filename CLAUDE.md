@@ -32,10 +32,14 @@ Run from the repo root:
 - `npm run lint`         → ESLint: find likely bugs
 - `npm run format`       → Prettier: auto-format all files
 - `npm run format:check` → Prettier: check formatting without changing files
+- `npm run services:up`  → start local Postgres (port 5432) + Redis (port 6379) in Docker
+- `npm run services:down` → stop them (data is kept in Docker volumes)
+
+Docker Desktop must be running first ("Engine running").
 
 ## Current phase
-Phase 0: repo setup. Steps 1–8 done (git, .gitignore, workspaces, TypeScript, Prettier/ESLint, .env.example).
-Next: Step 9 Docker Compose (Postgres + Redis), Step 10 GitHub Actions CI, Step 11 README.
+Phase 0: repo setup. Steps 1–9 done (git, .gitignore, workspaces, TypeScript, Prettier/ESLint,
+.env.example, Docker Compose). Next: Step 10 GitHub Actions CI, Step 11 README.
 No app code exists yet.
 Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
 
