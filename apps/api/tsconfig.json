@@ -1,0 +1,17 @@
+{
+  // Shared rules live in the base file; these are the API-specific extras.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Use Node's modern module system (matches "type": "module" in package.json).
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    // Load Node's built-in types (process, Buffer, etc.).
+    "types": ["node"],
+
+    // Where compiled JavaScript would go if we build it later.
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"]
+}

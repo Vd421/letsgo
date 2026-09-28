@@ -35,13 +35,20 @@ Run from the repo root:
 - `npm run services:up`  → start local Postgres (port 5432) + Redis (port 6379) in Docker
 - `npm run services:down` → stop them (data is kept in Docker volumes)
 
+- `npm run dev -w @replay/api` → start the API on http://localhost:4000 (restarts on save)
+- `npm run typecheck -w @replay/api` → TypeScript type check for the API
+
 Docker Desktop must be running first ("Engine running").
 
 ## Current phase
 Phase 0 (repo setup) COMPLETE on 2026-09-29: git + GitHub, .gitignore/.gitattributes, npm workspaces,
 TypeScript, ESLint + Prettier, .env.example, Docker Compose (Postgres + Redis), GitHub Actions CI
 (.github/workflows/ci.yml runs lint + format:check), README.
-Next: Phase 1 (not planned yet; make a plan with vd first). No app code exists yet.
+Phase 1 (Express API + database), approved plan, on branch `feature/api`:
+1. Express + TS + tsx dev server (DONE)  2. GET /health, vd writes it with hints (NEXT)
+3. .env loading  4. Prisma + Session table  5. POST/GET /sessions with Zod
+6. Vitest + Supertest tests  7. CI runs typecheck + tests  8. README/CLAUDE.md, PR + merge.
+Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claude AI, 6 deploy + evals.
 
 ## Git workflow (what we actually do)
 - Remote: https://github.com/Vd421/letsgo (`origin`), default branch `main`.

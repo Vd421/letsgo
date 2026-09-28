@@ -2,5 +2,19 @@
   "name": "@replay/api",
   "version": "0.0.0",
   "private": true,
-  "description": "Express API: receives recordings, serves sessions, runs AI jobs"
+  "description": "Express API: receives recordings, serves sessions, runs AI jobs",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.19.0",
+    "tsx": "^4.23.15"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  }
 }
