@@ -1,7 +1,8 @@
 import express from "express";
+import { config } from "./config.js";
 
 const app = express();
-const port = 4000;
+const port = config.port;
 
 // A route: when someone visits GET /, send back a short message.
 app.get("/", (_req, res) => {

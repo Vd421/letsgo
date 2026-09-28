@@ -45,8 +45,9 @@ Phase 0 (repo setup) COMPLETE on 2026-09-29: git + GitHub, .gitignore/.gitattrib
 TypeScript, ESLint + Prettier, .env.example, Docker Compose (Postgres + Redis), GitHub Actions CI
 (.github/workflows/ci.yml runs lint + format:check), README.
 Phase 1 (Express API + database), approved plan, on branch `feature/api`:
-1. Express + TS + tsx dev server (DONE)  2. GET /health, vd writes it with hints (NEXT)
-3. .env loading  4. Prisma + Session table  5. POST/GET /sessions with Zod
+1. Express + TS + tsx dev server (DONE)  2. GET /health (DONE)
+3. .env loading via Node --env-file-if-exists + src/config.ts (DONE)
+4. Prisma + Session table (NEXT)  5. POST/GET /sessions with Zod
 6. Vitest + Supertest tests  7. CI runs typecheck + tests  8. README/CLAUDE.md, PR + merge.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claude AI, 6 deploy + evals.
 
