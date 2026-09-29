@@ -50,8 +50,8 @@ TypeScript, ESLint + Prettier, .env.example, Docker Compose (Postgres + Redis), 
 Phase 1 (Express API + database), approved plan, on branch `feature/api`:
 1. Express + TS + tsx dev server (DONE)  2. GET /health (DONE)
 3. .env loading via Node --env-file-if-exists + src/config.ts (DONE)
-4. Prisma + Session table (DONE)  5. POST/GET /sessions with Zod (NEXT)
-6. Vitest + Supertest tests  7. CI runs typecheck + tests  8. README/CLAUDE.md, PR + merge.
+4. Prisma + Session table (DONE)  5. POST/GET /sessions with Zod (DONE, src/routes/sessions.ts)
+6. Vitest + Supertest tests (NEXT)  7. CI runs typecheck + tests  8. README/CLAUDE.md, PR + merge.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claude AI, 6 deploy + evals.
 
 ## Git workflow (what we actually do)
