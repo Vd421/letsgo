@@ -8,4 +8,9 @@ if (!Number.isInteger(port) || port <= 0) {
   throw new Error(`PORT must be a positive whole number, got "${process.env.PORT}"`);
 }
 
-export const config = { port };
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is missing. Copy .env.example to .env at the repo root.");
+}
+
+export const config = { port, databaseUrl };

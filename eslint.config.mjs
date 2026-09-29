@@ -8,7 +8,7 @@ import tseslint from "typescript-eslint";
 
 export default defineConfig([
   // Folders to skip (generated or downloaded code).
-  globalIgnores(["**/node_modules/", "**/dist/", "**/build/", "**/coverage/"]),
+  globalIgnores(["**/node_modules/", "**/dist/", "**/build/", "**/coverage/", "**/generated/"]),
 
   // Recommended rule sets for JavaScript and TypeScript.
   js.configs.recommended,

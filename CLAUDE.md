@@ -37,6 +37,9 @@ Run from the repo root:
 
 - `npm run dev -w @replay/api` → start the API on http://localhost:4000 (restarts on save)
 - `npm run typecheck -w @replay/api` → TypeScript type check for the API
+- `npm run db:migrate -w @replay/api` → after editing prisma/schema.prisma: create + apply a migration
+- `npm run db:generate -w @replay/api` → regenerate the Prisma client (also runs on `npm install`)
+- `npm run db:studio -w @replay/api` → Prisma Studio: view/edit database rows in the browser
 
 Docker Desktop must be running first ("Engine running").
 
@@ -47,7 +50,7 @@ TypeScript, ESLint + Prettier, .env.example, Docker Compose (Postgres + Redis), 
 Phase 1 (Express API + database), approved plan, on branch `feature/api`:
 1. Express + TS + tsx dev server (DONE)  2. GET /health (DONE)
 3. .env loading via Node --env-file-if-exists + src/config.ts (DONE)
-4. Prisma + Session table (NEXT)  5. POST/GET /sessions with Zod
+4. Prisma + Session table (DONE)  5. POST/GET /sessions with Zod (NEXT)
 6. Vitest + Supertest tests  7. CI runs typecheck + tests  8. README/CLAUDE.md, PR + merge.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claude AI, 6 deploy + evals.
 
@@ -58,6 +61,10 @@ Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claud
   → delete the branch.
 - Guide PRs one click at a time; vd finds long multi-step instructions hard to follow.
 Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
+Note: Prisma pinned to 7.10.0 (npm "latest" tag is an 8.0 release candidate). Prisma 7 setup:
+`prisma-client` generator → apps/api/src/generated/prisma (git-ignored), config in apps/api/prisma.config.ts
+(loads ../../.env), connection via @prisma/adapter-pg in src/db.ts. npm audit "high" warnings come from
+the prisma CLI's own deps (deepmerge-ts, mysql2); the suggested fix downgrades Prisma, so ignored for now.
 
 ## About the developer
 vd is a beginner learning full-stack development by building this project.
