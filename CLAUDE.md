@@ -1,22 +1,22 @@
-# Replay
+﻿# Replay
 
 A session-replay tool with AI bug detection. It records user sessions in the browser,
 stores them, lets you replay them in a dashboard, and uses the Claude API to summarize
 sessions and flag likely bugs.
 
 ## Architecture (planned)
-rrweb recorder (browser) → FastAPI (Python) → Postgres (metadata) + AWS S3 (event blobs)
-→ Redis + Celery (background jobs, e.g. AI analysis) → React dashboard.
+rrweb recorder (browser) â†’ FastAPI (Python) â†’ Postgres (metadata) + AWS S3 (event blobs)
+â†’ Redis + Celery (background jobs, e.g. AI analysis) â†’ React dashboard.
 AI summaries/bug detection via the Claude API. AI evals in Python.
 Stack switched on 2026-10-03 (from Express/TS backend) because vd wants a Python, job-market-focused stack.
 
 ## Folder structure (planned monorepo)
-- apps/dashboard   → React + TypeScript + Vite + Tailwind dashboard (npm workspace)
-- apps/api-py      → FastAPI server (Python, venv + pip + requirements.txt)
-- apps/demo-site   → fake shop used to test recording
-- packages/recorder → the rrweb snippet sites install
-- packages/shared  → types shared by frontend and backend
-- evals/           → Python evals for AI summaries (later)
+- apps/dashboard   â†’ React + TypeScript + Vite + Tailwind dashboard (npm workspace)
+- apps/api-py      â†’ FastAPI server (Python, venv + pip + requirements.txt)
+- apps/demo-site   â†’ fake shop used to test recording
+- packages/recorder â†’ the rrweb snippet sites install
+- packages/shared  â†’ types shared by frontend and backend
+- evals/           â†’ Python evals for AI summaries (later)
 
 ## Tech stack
 - Backend: Python 3.12 + FastAPI, Pydantic (validation), uvicorn (server)
@@ -35,24 +35,24 @@ Stack switched on 2026-10-03 (from Express/TS backend) because vd wants a Python
 
 ## Commands
 Run from the repo root:
-- `npm install`          → install packages for all workspaces
-- `npm run lint`         → ESLint: find likely bugs
-- `npm run format`       → Prettier: auto-format all files
-- `npm run format:check` → Prettier: check formatting without changing files
-- `npm run services:up`  → start local Postgres (port 5432) + Redis (port 6379) in Docker
-- `npm run services:down` → stop them (data is kept in Docker volumes)
-- `npm run typecheck`    → TypeScript check for every workspace that has a typecheck script
-- `npm test`             → dashboard tests (Vitest, apps/dashboard/src/**/*.test.ts)
-- `npm run dashboard`    → dashboard (Vite) on http://localhost:5174
-- `npm run shop`         → demo shop (Vite) on http://localhost:5173 (port fixed: the API's CORS allows it)
+- `npm install`          â†’ install packages for all workspaces
+- `npm run lint`         â†’ ESLint: find likely bugs
+- `npm run format`       â†’ Prettier: auto-format all files
+- `npm run format:check` â†’ Prettier: check formatting without changing files
+- `npm run services:up`  â†’ start local Postgres (port 5432) + Redis (port 6379) in Docker
+- `npm run services:down` â†’ stop them (data is kept in Docker volumes)
+- `npm run typecheck`    â†’ TypeScript check for every workspace that has a typecheck script
+- `npm test`             â†’ dashboard tests (Vitest, apps/dashboard/src/**/*.test.ts)
+- `npm run dashboard`    â†’ dashboard (Vite) on http://localhost:5174
+- `npm run shop`         â†’ demo shop (Vite) on http://localhost:5173 (port fixed: the API's CORS allows it)
 
 Python API, run from apps/api-py with the venv active (`source .venv/Scripts/activate`):
-- `pip install -r requirements-dev.txt` → install Python packages into .venv
-- `python -m app.main` → start the API on http://localhost:4000 (restarts on save); docs at /docs
-- `pytest` → run tests (creates/uses a separate `replay_test` database)
-- `ruff check .` / `ruff format .` → lint / auto-format Python
-- `alembic revision --autogenerate -m "msg"` → after editing app/models.py: write a migration
-- `alembic upgrade head` → apply migrations
+- `pip install -r requirements-dev.txt` â†’ install Python packages into .venv
+- `python -m app.main` â†’ start the API on http://localhost:4000 (restarts on save); docs at /docs
+- `pytest` â†’ run tests (creates/uses a separate `replay_test` database)
+- `ruff check .` / `ruff format .` â†’ lint / auto-format Python
+- `alembic revision --autogenerate -m "msg"` â†’ after editing app/models.py: write a migration
+- `alembic upgrade head` â†’ apply migrations
 
 Docker Desktop must be running first ("Engine running").
 
@@ -69,12 +69,12 @@ Steps 1-5 above were built in TypeScript, then the stack switched to Python (202
 Phase 1b (rebuild API in Python), approved plan, on branch `feature/python-api`, folder apps/api-py:
 Steps 0-7 built together on 2026-10-03 at vd's request: venv, FastAPI /health, config.py
 (pydantic-settings), SQLAlchemy model `ReplaySession` (table `sessions`) + Alembic, POST/GET /sessions
-(Pydantic, camelCase JSON like the old API, bad data → 422), pytest, Ruff, CI job `api-py`.
+(Pydantic, camelCase JSON like the old API, bad data â†’ 422), pytest, Ruff, CI job `api-py`.
 Old Prisma tables ("Session", _prisma_migrations) are left in the local DB; they don't clash.
 First Alembic migration `5faa56f9945a` (create sessions table) added + checked (upgrade, downgrade,
 real server POST/GET). Old Express API (apps/api) deleted. Merged as PR #4 on 2026-10-03.
 Phase 2 (recorder + demo shop), approved plan, on branch `feature/recorder` (built 2026-10-03):
-1. `session_events` table (model EventBatch: one row per batch, events as JSONB, FK → sessions CASCADE)
+1. `session_events` table (model EventBatch: one row per batch, events as JSONB, FK â†’ sessions CASCADE)
 2. POST/GET /sessions/{id}/events (404 for unknown session, max 1000 events/batch, bumps event_count)
 3. CORS (settings.cors_origins, default http://localhost:5173)  4. apps/demo-site: Vite + plain TS shop
 with a deliberate bug (checkout silently fails over $100)  5. packages/recorder: rrweb 2.1.7,
@@ -100,7 +100,7 @@ also published at https://claude.ai/artifact/XUtDquUUMCxHhZR9wVLgtN). Build the 
 - vd rejected: ghost-cursor background on the replay page, big marketing headline, dark-navy separate stage.
 DONE 2026-10-04: 4a design tokens (apps/dashboard/src/index.css: @theme inline over CSS vars, dark default,
 data-theme="light" + localStorage "replay-theme")  4b shell: React Router 8 (BrowserRouter), Layout/Sidebar/
-TopBar, routes / (Overview placeholder), /sessions, /sessions/:id (Replay placeholder), /replay (→ newest)
+TopBar, routes / (Overview placeholder), /sessions, /sessions/:id (Replay placeholder), /replay (â†’ newest)
 4d rage detection: app/analysis.py (pure analyze(events)). Rage = 3+ DEAD clicks (no rrweb mutation within
 500ms) on the same element / within 30px, inside 2s. First version without the dead-click check wrongly
 flagged "4 T-shirts" (fast Add clicks); real recordings exposed it. GET /sessions and /sessions/{id} now
@@ -115,7 +115,8 @@ Empty visits (eventCount < 3) are hidden everywhere. Steps 0-6 merged as PR #7 o
 8 Vitest (25 tests: format/stats/moments, pass in any time zone) + `npm test` in CI, branch
 feature/dashboard-tests. Step 7 polish skipped by vd's choice ("finish this phase and move on").
 PHASE 3 COMPLETE once the tests PR is merged. Open item: delete test-robot visits only if vd agrees.
-Next: Phase 4 (event storage → AWS S3) or Phase 5 (Celery + Claude AI summaries): ask vd which first.
+Next: Phase 4 (event storage â†’ AWS S3) or Phase 5 (Celery + Claude AI summaries): ask vd which first.
+Note: the shop and dashboard Vite servers listen on 127.0.0.1 (host setting) because Node on Windows otherwise listened only on ::1 and browsers got "can't be reached"; CORS allows both localhost and 127.0.0.1.
 Note: on this Windows laptop `uvicorn --reload` got stuck twice (old code kept answering). Run the API
 without --reload and restart it after API changes; check for leftovers on port 4000.
 Full learning notes of everything so far: notes/everything-so-far.md.
@@ -123,8 +124,8 @@ Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claud
 
 ## Git workflow (what we actually do)
 - Remote: https://github.com/Vd421/letsgo (`origin`), default branch `main`.
-- Per feature: new branch (e.g. `setup/ci`, `feature/express-server`) → commit → push →
-  Pull Request → vd merges on github.com → `git pull` on main → delete the branch.
+- Per feature: new branch (e.g. `setup/ci`, `feature/express-server`) â†’ commit â†’ push â†’
+  Pull Request â†’ vd merges on github.com â†’ `git pull` on main â†’ delete the branch.
 - No `gh` CLI. Claude can open PRs and read CI results via the GitHub REST API, using the token
   from `git credential fill` (never print it). Merging into main is ALWAYS vd's click (blocked for Claude).
 - Guide PRs one click at a time; vd finds long multi-step instructions hard to follow.
@@ -142,7 +143,7 @@ Dev machine is Windows, using Git Bash in VS Code. Give Git Bash-compatible comm
 - No big changes without a plan I approve first.
 - Work in small steps. Stop after each step so I can ask questions.
 - Leave small, beginner-sized pieces for me to write myself, with hints.
-- After finishing a step, ask me 1–2 quick questions to check I understood.
+- After finishing a step, ask me 1â€“2 quick questions to check I understood.
 
 ## Rules
 - Before saying something works, run it and show me the output.

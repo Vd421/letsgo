@@ -14,8 +14,14 @@ class Settings(BaseSettings):
     port: int = 4000
     database_url: str  # no default → the app refuses to start if DATABASE_URL is missing
     # Websites allowed to call the API from a browser (CORS).
-    # 5173 = the demo shop, 5174 = the dashboard (both run with Vite).
-    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:5174"]
+    # 5173 = the demo shop, 5174 = the dashboard (both run with Vite). Browsers may show either
+    # "localhost" or "127.0.0.1" for this computer, so both are allowed.
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ]
 
     model_config = SettingsConfigDict(
         env_file=REPO_ROOT / ".env",  # read .env if it exists (real env vars still win)

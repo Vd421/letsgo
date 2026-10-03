@@ -12,5 +12,8 @@ export default defineConfig({
     // strictPort: fail instead of quietly picking another port (the API's CORS only allows 5174).
     port: 5174,
     strictPort: true,
+    // Listen on 127.0.0.1 (IPv4). Without this, Node on Windows may listen only on ::1 (IPv6),
+    // and browsers that try 127.0.0.1 get no answer ("site can't be reached").
+    host: "127.0.0.1",
   },
 });
