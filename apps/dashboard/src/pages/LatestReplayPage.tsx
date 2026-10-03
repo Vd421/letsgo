@@ -1,24 +1,31 @@
-// The "Replay" menu item has no visit chosen, so it opens the newest one.
+// The "Replay" menu item has no visit chosen, so it opens the newest visit that can be replayed.
+// Visits with almost no events (the visitor left before the first batch was sent) are skipped.
+import type { SessionSummary } from "@replay/shared";
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router";
 import { listSessions } from "../api";
 import { Card, Notice } from "../ui";
 
+/** Enough was recorded to rebuild the page: page info + a full snapshot (+ at least one change). */
+export function isReplayable(session: SessionSummary): boolean {
+  return session.eventCount >= 3;
+}
+
 export function LatestReplayPage() {
-  // undefined = still loading, null = no visits yet, string = the newest visit's id
-  const [newestId, setNewestId] = useState<string | null | undefined>(undefined);
+  // undefined = still loading, null = nothing replayable yet, string = the visit to open
+  const [targetId, setTargetId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     listSessions()
-      .then((sessions) => setNewestId(sessions[0]?.id ?? null))
-      .catch(() => setNewestId(null));
+      .then((sessions) => setTargetId(sessions.find(isReplayable)?.id ?? null))
+      .catch(() => setTargetId(null));
   }, []);
 
-  if (newestId) return <Navigate to={`/sessions/${newestId}`} replace />;
+  if (targetId) return <Navigate to={`/sessions/${targetId}`} replace />;
 
   return (
     <Card>
-      {newestId === undefined ? (
+      {targetId === undefined ? (
         <Notice title="Finding the newest visit…" />
       ) : (
         <Notice title="No visits to replay yet">

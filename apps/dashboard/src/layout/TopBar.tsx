@@ -5,7 +5,9 @@ import { isApiHealthy } from "../api";
 import { IconCalendar, IconMoon, IconRecord, IconSearch, IconSun } from "../icons";
 import { useTheme } from "../useTheme";
 
-const roundButton = "grid h-11 w-11 shrink-0 place-items-center rounded-full bg-panel-2 text-ink";
+// Round icons. Buttons get hover + press feedback; plain indicators (like the live dot) don't.
+const roundIcon = "grid h-11 w-11 shrink-0 place-items-center rounded-full bg-panel-2 text-ink";
+const roundButton = `${roundIcon} ring-1 ring-line transition hover:bg-line hover:ring-muted/50 active:scale-95`;
 
 export function TopBar() {
   const { theme, toggleTheme } = useTheme();
@@ -62,12 +64,13 @@ export function TopBar() {
           onClick={toggleTheme}
           className={roundButton}
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
           {theme === "dark" ? <IconMoon /> : <IconSun />}
         </button>
 
         <span
-          className={`${roundButton} relative`}
+          className={`${roundIcon} relative cursor-help`}
           title={apiUp === false ? "API not reachable" : "Recording: API connected"}
           aria-label={apiUp === false ? "API not reachable" : "API connected"}
         >

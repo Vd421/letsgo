@@ -7,6 +7,7 @@ import { listSessions } from "../api";
 import { browserName, formatDay, formatDuration, formatTime, shortUrl } from "../format";
 import { IconFlame, IconPlay } from "../icons";
 import { Notice } from "../ui";
+import { isReplayable } from "./LatestReplayPage";
 
 type Filter = "all" | "rage" | "calm";
 const REFRESH_MS = 10_000; // new visits show up without reloading the page
@@ -30,7 +31,9 @@ export function SessionsPage() {
     return () => clearInterval(timer);
   }, [load]);
 
-  const all = sessions ?? [];
+  // Hide empty visits: the visitor left before anything was sent, so there's nothing to watch.
+  const all = (sessions ?? []).filter(isReplayable);
+  const hiddenCount = (sessions ?? []).length - all.length;
   const counts = {
     all: all.length,
     rage: all.filter((s) => s.hasRage).length,
@@ -51,6 +54,12 @@ export function SessionsPage() {
           </h1>
           <p className="text-muted">
             Every recorded visit, newest first. Updates every 10 seconds.
+            {hiddenCount > 0 && (
+              <span title="The visitor left before anything was recorded, so there's nothing to replay.">
+                {" "}
+                {hiddenCount} empty {hiddenCount === 1 ? "visit" : "visits"} hidden.
+              </span>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filter visits">
@@ -108,12 +117,16 @@ function Chip(props: { active: boolean; onClick: () => void; label: string; coun
       type="button"
       onClick={props.onClick}
       aria-pressed={props.active}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
-        props.active ? "bg-panel-2 text-ink ring-1 ring-line" : "bg-panel text-text hover:text-ink"
+      className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition active:scale-95 ${
+        props.active
+          ? "bg-ink text-bg" // selected: a solid pill, impossible to miss
+          : "bg-panel text-text ring-1 ring-line hover:bg-panel-2 hover:text-ink hover:ring-muted/50"
       }`}
     >
       {props.label}
-      <span className="text-muted tabular-nums">{props.count}</span>
+      <span className={`tabular-nums ${props.active ? "opacity-60" : "text-muted"}`}>
+        {props.count}
+      </span>
     </button>
   );
 }

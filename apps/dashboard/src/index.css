@@ -69,6 +69,16 @@ body {
   @apply bg-bg text-text font-sans antialiased;
 }
 
+/* Tailwind resets buttons to look like plain text with an arrow cursor. Anything clickable
+   gets the hand cursor back, so people can tell it does something. */
+@layer base {
+  button:not(:disabled),
+  [role="button"],
+  a[href] {
+    cursor: pointer;
+  }
+}
+
 /* Keyboard users see where they are. */
 :focus-visible {
   outline: 2px solid var(--violet);

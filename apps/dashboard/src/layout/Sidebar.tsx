@@ -20,7 +20,9 @@ function NavItem(props: { to: string; active: boolean; icon: ReactNode; label: s
       to={props.to}
       aria-current={props.active ? "page" : undefined}
       className={`${itemClass} ${
-        props.active ? "bg-panel-2 text-accent" : "text-text hover:bg-panel-2 hover:text-ink"
+        props.active
+          ? "bg-panel-2 text-accent"
+          : "text-text hover:bg-panel-2 hover:text-ink active:scale-[0.98]"
       }`}
     >
       {props.icon}
@@ -32,7 +34,11 @@ function NavItem(props: { to: string; active: boolean; icon: ReactNode; label: s
 // Not built yet: shown so the menu looks complete, but it does nothing.
 function SoonItem(props: { icon: ReactNode; label: string; note?: string }) {
   return (
-    <span className={`${itemClass} cursor-default text-muted`} aria-disabled="true">
+    <span
+      className={`${itemClass} cursor-not-allowed text-muted opacity-70`}
+      aria-disabled="true"
+      title={props.note ? `Coming in ${props.note}` : "Not built yet"}
+    >
       {props.icon}
       {props.label}
       {props.note && (
