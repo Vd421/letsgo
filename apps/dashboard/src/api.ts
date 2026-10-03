@@ -1,6 +1,6 @@
 // Every call the dashboard makes to the Python API lives here, in one place.
 // The return types come from @replay/shared, so TypeScript knows exactly what each answer contains.
-import type { Session } from "@replay/shared";
+import type { SessionSummary } from "@replay/shared";
 
 export const API_URL = "http://localhost:4000";
 
@@ -24,12 +24,12 @@ export async function isApiHealthy(): Promise<boolean> {
   }
 }
 
-/** All recorded sessions, newest first. */
-export function listSessions(): Promise<Session[]> {
-  return getJson<Session[]>("/sessions");
+/** All recorded sessions, newest first, each with its click analysis. */
+export function listSessions(): Promise<SessionSummary[]> {
+  return getJson<SessionSummary[]>("/sessions");
 }
 
-/** One session's details. Throws if it doesn't exist (404). */
-export function getSession(id: string): Promise<Session> {
-  return getJson<Session>(`/sessions/${id}`);
+/** One session's details and analysis. Throws if it doesn't exist (404). */
+export function getSession(id: string): Promise<SessionSummary> {
+  return getJson<SessionSummary>(`/sessions/${id}`);
 }
