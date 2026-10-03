@@ -13,7 +13,6 @@ Stack switched on 2026-10-03 (from Express/TS backend) because vd wants a Python
 ## Folder structure (planned monorepo)
 - apps/dashboard   → React + TypeScript + Vite + Tailwind dashboard (npm workspace)
 - apps/api-py      → FastAPI server (Python, venv + pip + requirements.txt)
-- apps/api         → OLD Express server, to be deleted (Python API replaces it)
 - apps/demo-site   → fake shop used to test recording
 - packages/recorder → the rrweb snippet sites install
 - packages/shared  → types shared by frontend and backend
@@ -31,6 +30,8 @@ Stack switched on 2026-10-03 (from Express/TS backend) because vd wants a Python
 - Python tooling: plain venv + pip (chosen to teach the basics). Run Python with `py` on this machine
   (`python` is a broken Windows Store alias). Use `py -3.12`: the C:\Python313 install is broken
   (no Lib folder, "Could not find platform independent libraries"). Inside the venv, plain `python` works.
+  Second laptop (set up 2026-10-03): Python install manager with 3.14 (default) + 3.12 added via
+  `py install 3.12`; the venv was made with `py -V:3.12 -m venv .venv`. Node 24 installed via winget.
 
 ## Commands
 Run from the repo root:
@@ -66,7 +67,8 @@ Steps 0-7 built together on 2026-10-03 at vd's request: venv, FastAPI /health, c
 (pydantic-settings), SQLAlchemy model `ReplaySession` (table `sessions`) + Alembic, POST/GET /sessions
 (Pydantic, camelCase JSON like the old API, bad data → 422), pytest, Ruff, CI job `api-py`.
 Old Prisma tables ("Session", _prisma_migrations) are left in the local DB; they don't clash.
-TODO: vd deletes apps/api (old Express API) + runs `npm install`; then commit, push, PR + merge.
+First Alembic migration `5faa56f9945a` (create sessions table) added + checked (upgrade, downgrade,
+real server POST/GET). Old Express API (apps/api) deleted. NEXT: PR feature/python-api → main + merge.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claude AI, 6 deploy (AWS) + evals.
 
 ## Git workflow (what we actually do)
@@ -76,8 +78,6 @@ Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claud
   → delete the branch.
 - Guide PRs one click at a time; vd finds long multi-step instructions hard to follow.
 Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
-Note: apps/api (Express + Prisma 7) is the old TypeScript API, kept only until vd deletes it.
-
 ## About the developer
 vd is a beginner learning full-stack development by building this project.
 Dev machine is Windows, using Git Bash in VS Code. Give Git Bash-compatible commands.
