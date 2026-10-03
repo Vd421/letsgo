@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tiny Shop (Replay demo)</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>🛒 Tiny Shop</h1>
+      <p class="hint">A fake shop for testing Replay. Nothing here is real.</p>
+    </header>
+
+    <main>
+      <section>
+        <h2>Products</h2>
+        <ul id="products"></ul>
+      </section>
+
+      <aside>
+        <h2>Your cart</h2>
+        <ul id="cart"></ul>
+        <p>Total: <strong id="total">$0</strong></p>
+        <label>
+          Email for the receipt
+          <input id="email" type="email" placeholder="you@example.com" />
+        </label>
+        <button id="checkout">Checkout</button>
+        <p id="message" role="status"></p>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

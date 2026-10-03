@@ -41,6 +41,8 @@ Run from the repo root:
 - `npm run format:check` → Prettier: check formatting without changing files
 - `npm run services:up`  → start local Postgres (port 5432) + Redis (port 6379) in Docker
 - `npm run services:down` → stop them (data is kept in Docker volumes)
+- `npm run typecheck`    → TypeScript check for every workspace that has a typecheck script
+- `npm run shop`         → demo shop (Vite) on http://localhost:5173 (port fixed: the API's CORS allows it)
 
 Python API, run from apps/api-py with the venv active (`source .venv/Scripts/activate`):
 - `pip install -r requirements-dev.txt` → install Python packages into .venv
@@ -68,7 +70,15 @@ Steps 0-7 built together on 2026-10-03 at vd's request: venv, FastAPI /health, c
 (Pydantic, camelCase JSON like the old API, bad data → 422), pytest, Ruff, CI job `api-py`.
 Old Prisma tables ("Session", _prisma_migrations) are left in the local DB; they don't clash.
 First Alembic migration `5faa56f9945a` (create sessions table) added + checked (upgrade, downgrade,
-real server POST/GET). Old Express API (apps/api) deleted. NEXT: PR feature/python-api → main + merge.
+real server POST/GET). Old Express API (apps/api) deleted. Merged as PR #4 on 2026-10-03.
+Phase 2 (recorder + demo shop), approved plan, on branch `feature/recorder` (built 2026-10-03):
+1. `session_events` table (model EventBatch: one row per batch, events as JSONB, FK → sessions CASCADE)
+2. POST/GET /sessions/{id}/events (404 for unknown session, max 1000 events/batch, bumps event_count)
+3. CORS (settings.cors_origins, default http://localhost:5173)  4. apps/demo-site: Vite + plain TS shop
+with a deliberate bug (checkout silently fails over $100)  5. packages/recorder: rrweb 2.1.7,
+startRecording(), batches every 5s, maskAllInputs  6. checked end-to-end with headless Edge
+7. CI runs `npm run typecheck`. NEXT: vd tries the shop by hand, then commit, push, PR + merge.
+Events live in Postgres for now; Phase 4 moves them to S3.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claude AI, 6 deploy (AWS) + evals.
 
 ## Git workflow (what we actually do)

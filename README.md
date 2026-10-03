@@ -98,6 +98,16 @@ Run from the repo root:
 | `npm run lint`          | Find likely bugs with ESLint                |
 | `npm run format`        | Auto-format code with Prettier              |
 | `npm run format:check`  | Check formatting without changing files     |
+| `npm run typecheck`     | TypeScript check for the shop and recorder  |
+| `npm run shop`          | Start the demo shop on http://localhost:5173 |
+
+## Try the recorder
+
+With the services and the Python API running, start the demo shop (`npm run shop`) and
+open http://localhost:5173. Click around: every 5 seconds the recorder sends what you did
+to the API. Watch `eventCount` grow at http://localhost:4000/sessions.
+
+The shop has one bug on purpose: checkout silently does nothing when the total is over $100.
 
 Every push to `main` and every Pull Request runs these checks in GitHub Actions:
-`lint` + `format:check` for JavaScript, and Ruff + migrations + pytest for the Python API.
+`lint` + `format:check` + `typecheck` for TypeScript, and Ruff + migrations + pytest for the Python API.
