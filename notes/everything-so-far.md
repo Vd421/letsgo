@@ -52,8 +52,8 @@ deployment.
 | 29–30 Sep   | **Phase 1**: API in TypeScript      | Express server, database, `/sessions` routes      | never merged |
 | 3 Oct       | **Phase 1b**: API in Python         | Rebuilt the API with FastAPI, plus 9 tests        | PR #4     |
 | 3 Oct       | **Phase 2**: recorder + demo shop   | Real visits recorded and saved; 17 tests          | PR #5     |
-| 4 Oct       | **Phase 3** (started): dashboard   | First React app, shared types, dashboard design approved | PR #6 (notes); rest on `feature/dashboard` |
-| next        | Phase 3 continued                  | Build the approved design for real, with real replays | –         |
+| 4 Oct       | **Phase 3**: dashboard             | Design approved; Overview, Sessions, real Replay; rage detection; 60 tests | PR #6, #7, #8 |
+| next        | Phase 4 or 5                        | Cloud storage, or Claude explaining each visit    | –         |
 
 The project lives at https://github.com/Vd421/letsgo. The official version is the `main` branch.
 
@@ -549,8 +549,8 @@ git push -u origin feature/my-thing  # then open a PR on GitHub
 
 **Phase 3: the dashboard and the replay player.** It's a React app in `apps/dashboard` that
 lists all sessions and plays any of them back like a video, using rrweb's player and
-`GET /sessions/{id}/events`. **Started on 4 Oct:** steps 0–3 are done and the design is approved.
-See `notes/2026-10-04.md` and the mockup in `docs/design/dashboard-mockup.html`.
+`GET /sessions/{id}/events`. **Done on 4 Oct** (PRs #6, #7, #8). The full story is in
+`notes/2026-10-04.md`, and the approved design is in `docs/design/dashboard-mockup.html`.
 
 After that:
 - **Phase 4:** move event storage from Postgres to AWS S3 (cheaper for large amounts of data).
