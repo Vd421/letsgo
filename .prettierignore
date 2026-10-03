@@ -3,6 +3,7 @@ node_modules/
 dist/
 build/
 coverage/
+generated/
 package-lock.json
 
 # Hand-written docs keep their own formatting

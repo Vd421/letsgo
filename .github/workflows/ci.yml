@@ -7,6 +7,7 @@ on:
   pull_request:
 
 jobs:
+  # JavaScript/TypeScript side (dashboard, recorder later).
   check:
     runs-on: ubuntu-latest
     steps:
@@ -24,3 +25,45 @@ jobs:
 
       - run: npm run lint
       - run: npm run format:check
+
+  # Python API: lint, format check, and tests against a real Postgres.
+  api-py:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api-py
+
+    # A throwaway Postgres database just for this CI run (like our Docker Compose one).
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: replay
+          POSTGRES_PASSWORD: replay
+          POSTGRES_DB: replay
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U replay -d replay"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      # Not a secret: only works for the throwaway CI database above.
+      DATABASE_URL: postgresql://replay:replay@localhost:5432/replay
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Install Python 3.12 and cache downloaded pip packages.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api-py/requirements*.txt
+
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      # Check the migrations can build the database from scratch.
+      - run: alembic upgrade head
+      - run: pytest

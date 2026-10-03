@@ -1,6 +1,0 @@
-{
-  "name": "@replay/api",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Express API: receives recordings, serves sessions, runs AI jobs"
-}

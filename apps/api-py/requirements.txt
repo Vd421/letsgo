@@ -1,0 +1,8 @@
+# Packages the API needs to run. Install: pip install -r requirements-dev.txt
+# Pinned to exact versions so every machine (yours, CI, the server) gets the same code.
+fastapi==0.142.2            # web framework (like Express)
+uvicorn[standard]==0.54.0   # server that runs the FastAPI app (like `node`)
+pydantic-settings==2.15.0   # reads settings from .env (like our old config.ts)
+sqlalchemy==2.1.2           # talks to the database from Python (like Prisma Client)
+psycopg[binary]==3.3.6      # the Postgres "driver" SQLAlchemy uses under the hood
+alembic==1.20.0             # database migrations (like `prisma migrate`)

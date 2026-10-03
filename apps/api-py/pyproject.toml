@@ -1,0 +1,17 @@
+# Settings for Python tools, all in one file (a bit like package.json + eslint config).
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]  # migration files are generated; don't nag about them
+
+[tool.ruff.lint]
+# E/F = common errors, I = sorted imports, UP = modern Python syntax, B = likely bugs
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff.lint.isort]
+# Our alembic/ folder has the same name as the alembic library; this is the library.
+known-third-party = ["alembic"]

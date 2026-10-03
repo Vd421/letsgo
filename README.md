@@ -6,7 +6,7 @@ Session replay with AI bug detection. Replay records what users do on a website,
 watch those sessions back in a dashboard, and uses the Claude API to summarize each session
 and flag likely bugs.
 
-> 🚧 **Work in progress.** Phase 0 (repo setup) is complete. App code starts in Phase 1.
+> 🚧 **Work in progress.** The Python API (FastAPI + Postgres) has `/health` and `/sessions`.
 
 ## How it works (planned)
 
@@ -14,10 +14,10 @@ and flag likely bugs.
 Website with recorder snippet (rrweb)
         │  sends recorded events
         ▼
-Express API ──► Postgres (session info)
-        │   └─► Cloudflare R2 (raw event recordings)
+FastAPI (Python) ──► Postgres (session info)
+        │        └─► AWS S3 (raw event recordings)
         ▼
-Redis + BullMQ job queue ──► Claude API (summaries + bug detection)
+Redis + Celery job queue ──► Claude API (summaries + bug detection)
         │
         ▼
 React dashboard (list, replay, and read AI summaries)
@@ -25,23 +25,23 @@ React dashboard (list, replay, and read AI summaries)
 
 ## Tech stack
 
-| Area     | Tools                                     |
-| -------- | ----------------------------------------- |
-| Language | TypeScript (Python later for AI evals)    |
-| Frontend | React, Vite, Tailwind CSS                 |
-| Backend  | Node.js, Express                          |
-| Data     | Postgres (Neon) + Prisma, Cloudflare R2   |
-| Jobs     | Redis + BullMQ                            |
-| AI       | Claude API                                |
-| Tooling  | Docker, GitHub Actions, ESLint, Prettier  |
+| Area     | Tools                                                  |
+| -------- | ------------------------------------------------------ |
+| Backend  | Python, FastAPI, Pydantic                              |
+| Data     | Postgres + SQLAlchemy + Alembic, AWS S3                |
+| Jobs     | Redis + Celery                                         |
+| AI       | Claude API, evals in Python                            |
+| Frontend | TypeScript, React, Vite, Tailwind CSS                  |
+| Tooling  | Docker, GitHub Actions, pytest, Ruff, ESLint, Prettier |
 
 ## Project structure
 
-This is a monorepo using npm workspaces.
+This is a monorepo: one repo holding the Python API and the JavaScript apps
+(npm workspaces).
 
 ```
 apps/
-  api/          Express server
+  api-py/       FastAPI server (Python)
   dashboard/    React dashboard
   demo-site/    Fake shop used to test recording
 packages/
@@ -51,8 +51,8 @@ packages/
 
 ## Getting started
 
-**You need:** [Node.js](https://nodejs.org) 22 or newer, and
-[Docker Desktop](https://www.docker.com/products/docker-desktop/) running.
+**You need:** [Python](https://www.python.org) 3.12, [Node.js](https://nodejs.org) 22 or newer,
+and [Docker Desktop](https://www.docker.com/products/docker-desktop/) running.
 
 ```bash
 git clone https://github.com/Vd421/letsgo.git
@@ -63,6 +63,29 @@ npm run services:up         # start local Postgres + Redis in Docker
 ```
 
 When you're done: `npm run services:down` (your data is kept).
+
+## Python API
+
+Run these from `apps/api-py` (Git Bash on Windows shown; on Mac/Linux use `bin` instead of `Scripts`):
+
+```bash
+cd apps/api-py
+py -3.12 -m venv .venv               # once: create the virtual environment
+source .venv/Scripts/activate        # every new terminal: switch it on
+pip install -r requirements-dev.txt  # install packages
+alembic upgrade head                 # create/update the database tables
+python -m app.main                   # start the API on http://localhost:4000 (restarts on save)
+```
+
+Open http://localhost:4000/docs for interactive API docs (FastAPI makes them for you).
+
+| Command                                     | What it does                                       |
+| ------------------------------------------- | -------------------------------------------------- |
+| `pytest`                                    | Run the tests (uses a separate `replay_test` DB)   |
+| `ruff check .`                              | Find likely bugs                                   |
+| `ruff format .`                             | Auto-format Python code                            |
+| `alembic revision --autogenerate -m "msg"`  | After changing `app/models.py`: write a migration  |
+| `alembic upgrade head`                      | Apply migrations to the database                   |
 
 ## Scripts
 
@@ -76,4 +99,5 @@ Run from the repo root:
 | `npm run format`        | Auto-format code with Prettier              |
 | `npm run format:check`  | Check formatting without changing files     |
 
-Every push to `main` and every Pull Request runs `lint` and `format:check` in GitHub Actions.
+Every push to `main` and every Pull Request runs these checks in GitHub Actions:
+`lint` + `format:check` for JavaScript, and Ruff + migrations + pytest for the Python API.
