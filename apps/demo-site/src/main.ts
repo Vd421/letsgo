@@ -36,7 +36,8 @@ function cartTotal(): number {
 function renderProducts(): void {
   $("products").innerHTML = products
     .map(
-      (p) => `<li><span>${p.name}, $${p.price}</span>
+      (p) => `<li><span class="item"><span class="name">${p.name}</span>
+        <span class="price">$${p.price}</span></span>
         <button data-add="${p.id}">Add to cart</button></li>`,
     )
     .join("");
@@ -46,7 +47,7 @@ function renderCart(): void {
   const lines = [...cart].map(([id, quantity]) => {
     const product = products.find((p) => p.id === id)!;
     return `<li><span>${product.name} × ${quantity}</span>
-      <button data-remove="${id}">Remove</button></li>`;
+      <button class="remove" data-remove="${id}">Remove</button></li>`;
   });
   $("cart").innerHTML = lines.join("") || "<li>Empty</li>";
   $("total").textContent = `$${cartTotal()}`;

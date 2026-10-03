@@ -1,14 +1,34 @@
+/* Tiny Shop styles. Fonts come from Google Fonts (linked in index.html). */
 body {
-  font-family: system-ui, sans-serif;
+  font-family: "Figtree", system-ui, sans-serif;
   max-width: 900px;
   margin: 0 auto;
-  padding: 1rem;
-  background: #fafaf7;
-  color: #222;
+  padding: 1.5rem 1rem;
+  background: #f6f5f1;
+  color: #1c1c1e;
+}
+
+h1,
+h2 {
+  font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
 }
 
 .hint {
-  color: #777;
+  color: #8a8a8f;
+  margin: 0.25rem 0 1.75rem;
 }
 
 main {
@@ -26,56 +46,110 @@ main {
 ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 #products li {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.6rem;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid #e7e5de;
+  border-radius: 16px;
+}
+
+.item {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.price {
+  color: #8a8a8f;
+  font-size: 0.9rem;
 }
 
 #cart li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 0;
+  padding: 0.3rem 0;
 }
 
 aside {
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
+  border: 1px solid #e7e5de;
+  border-radius: 18px;
+  padding: 1.1rem;
   align-self: start;
 }
 
 label {
   display: block;
   margin: 1rem 0;
+  font-size: 0.9rem;
+  color: #5a5a5f;
 }
 
 input {
   display: block;
   width: 100%;
   box-sizing: border-box;
-  margin-top: 0.25rem;
-  padding: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #dcdad2;
+  border-radius: 10px;
+  font: inherit;
+  color: #1c1c1e;
 }
 
 button {
   cursor: pointer;
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1.1rem;
   border: none;
-  border-radius: 6px;
-  background: #2f6fed;
+  border-radius: 999px;
+  background: #1c1c1e;
   color: white;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+button:hover {
+  background: #3a3a3e;
+}
+
+#checkout {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2f6fed;
+}
+
+#checkout:hover {
+  background: #255bd0;
+}
+
+button.remove {
+  padding: 0.25rem 0.6rem;
+  background: transparent;
+  color: #8a8a8f;
+  font-weight: 500;
+}
+
+button.remove:hover {
+  background: #f1f0eb;
+  color: #1c1c1e;
 }
 
 #message {
   color: #1a7f37;
+  font-weight: 500;
 }
