@@ -105,8 +105,13 @@ flagged "4 T-shirts" (fast Add clicks); real recordings exposed it. GET /session
 return SessionSummary (durationMs, clickCount, rageClickCount, hasRage, clicks[{at,rage}]); computed per
 request (fine for now). 4c Sessions page with real data (filters, search via ?q=, 10s refresh, states).
 Also: Tiny Shop validates the email at checkout (type=email + pattern, red message, no order).
-NEXT: 5 Replay page with rrweb Replayer + our own controls  6 Overview from real data
-7-9 loading/error polish, tests (Vitest), CI, docs, PR.
+DONE 2026-10-04: 5 Replay page (rrweb Replayer driven by replay/useReplayer.ts, our own Theatre/Timeline/
+Controls/Inspector, Moments built from events in replay/moments.ts, fits tall/narrow windows)
+6 Overview from real data (computeStats in src/stats.ts, done in the browser for local time zones;
+KpiCards, Heatmap "Visits by time", hand-drawn SVG EventsChart, Outcomes, RecentVisits).
+Empty visits (eventCount < 3) are hidden everywhere. vd chose to open the PR after step 6;
+LATER (next PR): 7 polish, 8 Vitest tests for stats.ts/moments.ts/format.ts + CI, delete test-robot
+visits only if vd agrees.
 Note: on this Windows laptop `uvicorn --reload` got stuck twice (old code kept answering). Run the API
 without --reload and restart it after API changes; check for leftovers on port 4000.
 Full learning notes of everything so far: notes/everything-so-far.md.
