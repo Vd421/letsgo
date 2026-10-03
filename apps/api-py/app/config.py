@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     # Pydantic checks the types for us: PORT=abc would fail right away with a clear error.
     port: int = 4000
     database_url: str  # no default → the app refuses to start if DATABASE_URL is missing
+    # Websites allowed to call the API from a browser (CORS). 5173 = the demo shop (Vite).
+    cors_origins: list[str] = ["http://localhost:5173"]
 
     model_config = SettingsConfigDict(
         env_file=REPO_ROOT / ".env",  # read .env if it exists (real env vars still win)

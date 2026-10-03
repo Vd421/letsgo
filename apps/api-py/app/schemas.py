@@ -2,6 +2,7 @@
 # Models (models.py) = what's in the database. Schemas (this file) = what's in requests/responses.
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 from pydantic.alias_generators import to_camel
@@ -32,3 +33,18 @@ class SessionOut(CamelModel):
     started_at: datetime
     ended_at: datetime | None
     event_count: int
+
+
+class EventBatchCreate(CamelModel):
+    """What the recorder sends to POST /sessions/{id}/events: a few seconds of rrweb events."""
+
+    # Each rrweb event is a JSON object (we don't check its insides). At least 1 per batch,
+    # and at most 1000, so one request can't be enormous.
+    events: list[dict[str, Any]] = Field(min_length=1, max_length=1000)
+
+
+class EventBatchSaved(CamelModel):
+    """What the API replies after saving a batch."""
+
+    received: int  # events in this batch
+    event_count: int  # events saved for this session so far, in total

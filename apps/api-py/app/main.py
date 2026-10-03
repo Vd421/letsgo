@@ -2,11 +2,21 @@
 # Run it: python -m app.main   (from apps/api-py, with the venv active)
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routes import sessions
 
 app = FastAPI(title="Replay API")
+
+# CORS: browsers block a page on one address (the shop, port 5173) from calling another
+# (this API, port 4000) unless the API says that address is allowed. This says so.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 
 # A route: when someone visits GET /, send back a short message.
