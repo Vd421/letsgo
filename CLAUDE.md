@@ -96,9 +96,19 @@ also published at https://claude.ai/artifact/XUtDquUUMCxHhZR9wVLgtN). Build the 
   Replay (browser frame, own controls: play/restart/speed/skip idle/fullscreen, activity timeline with click
   dots + rage zone, Moments/Visitor/AI tabs; autoplays on open; no decorative background).
 - vd rejected: ghost-cursor background on the replay page, big marketing headline, dark-navy separate stage.
-NEXT (approved plan): 4a design tokens in Tailwind  4b shell + React Router  4c Sessions page with real data
-4d rage-click detection in the API (3+ clicks on same spot within 2s)  5 Replay page with rrweb Replayer +
-our own controls  6 Overview from real data  7-9 loading/error states, tests, CI, docs, PR.
+DONE 2026-10-04: 4a design tokens (apps/dashboard/src/index.css: @theme inline over CSS vars, dark default,
+data-theme="light" + localStorage "replay-theme")  4b shell: React Router 8 (BrowserRouter), Layout/Sidebar/
+TopBar, routes / (Overview placeholder), /sessions, /sessions/:id (Replay placeholder), /replay (→ newest)
+4d rage detection: app/analysis.py (pure analyze(events)). Rage = 3+ DEAD clicks (no rrweb mutation within
+500ms) on the same element / within 30px, inside 2s. First version without the dead-click check wrongly
+flagged "4 T-shirts" (fast Add clicks); real recordings exposed it. GET /sessions and /sessions/{id} now
+return SessionSummary (durationMs, clickCount, rageClickCount, hasRage, clicks[{at,rage}]); computed per
+request (fine for now). 4c Sessions page with real data (filters, search via ?q=, 10s refresh, states).
+Also: Tiny Shop validates the email at checkout (type=email + pattern, red message, no order).
+NEXT: 5 Replay page with rrweb Replayer + our own controls  6 Overview from real data
+7-9 loading/error polish, tests (Vitest), CI, docs, PR.
+Note: on this Windows laptop `uvicorn --reload` got stuck twice (old code kept answering). Run the API
+without --reload and restart it after API changes; check for leftovers on port 4000.
 Full learning notes of everything so far: notes/everything-so-far.md.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claude AI, 6 deploy (AWS) + evals.
 
