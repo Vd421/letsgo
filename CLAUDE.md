@@ -42,6 +42,8 @@ Run from the repo root:
 - `npm run services:up`  → start local Postgres (port 5432) + Redis (port 6379) in Docker
 - `npm run services:down` → stop them (data is kept in Docker volumes)
 - `npm run typecheck`    → TypeScript check for every workspace that has a typecheck script
+- `npm test`             → dashboard tests (Vitest, apps/dashboard/src/**/*.test.ts)
+- `npm run dashboard`    → dashboard (Vite) on http://localhost:5174
 - `npm run shop`         → demo shop (Vite) on http://localhost:5173 (port fixed: the API's CORS allows it)
 
 Python API, run from apps/api-py with the venv active (`source .venv/Scripts/activate`):
@@ -109,9 +111,11 @@ DONE 2026-10-04: 5 Replay page (rrweb Replayer driven by replay/useReplayer.ts, 
 Controls/Inspector, Moments built from events in replay/moments.ts, fits tall/narrow windows)
 6 Overview from real data (computeStats in src/stats.ts, done in the browser for local time zones;
 KpiCards, Heatmap "Visits by time", hand-drawn SVG EventsChart, Outcomes, RecentVisits).
-Empty visits (eventCount < 3) are hidden everywhere. vd chose to open the PR after step 6;
-LATER (next PR): 7 polish, 8 Vitest tests for stats.ts/moments.ts/format.ts + CI, delete test-robot
-visits only if vd agrees.
+Empty visits (eventCount < 3) are hidden everywhere. Steps 0-6 merged as PR #7 on 2026-10-04.
+8 Vitest (25 tests: format/stats/moments, pass in any time zone) + `npm test` in CI, branch
+feature/dashboard-tests. Step 7 polish skipped by vd's choice ("finish this phase and move on").
+PHASE 3 COMPLETE once the tests PR is merged. Open item: delete test-robot visits only if vd agrees.
+Next: Phase 4 (event storage → AWS S3) or Phase 5 (Celery + Claude AI summaries): ask vd which first.
 Note: on this Windows laptop `uvicorn --reload` got stuck twice (old code kept answering). Run the API
 without --reload and restart it after API changes; check for leftovers on port 4000.
 Full learning notes of everything so far: notes/everything-so-far.md.

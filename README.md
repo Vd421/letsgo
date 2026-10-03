@@ -100,6 +100,7 @@ Run from the repo root:
 | `npm run format`        | Auto-format code with Prettier              |
 | `npm run format:check`  | Check formatting without changing files     |
 | `npm run typecheck`     | TypeScript check for every app              |
+| `npm test`              | Dashboard tests (Vitest)                    |
 | `npm run shop`          | Start the demo shop on http://localhost:5173 |
 | `npm run dashboard`     | Start the dashboard on http://localhost:5174 |
 
@@ -119,4 +120,4 @@ With the services and the Python API running:
 (see `apps/api-py/app/analysis.py`).
 
 Every push to `main` and every Pull Request runs these checks in GitHub Actions:
-`lint` + `format:check` + `typecheck` for TypeScript, and Ruff + migrations + pytest for the Python API.
+`lint` + `format:check` + `typecheck` + Vitest for TypeScript, and Ruff + migrations + pytest for the Python API.

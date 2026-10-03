@@ -24,6 +24,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "shop": "npm run dev -w @replay/demo-site",
     "dashboard": "npm run dev -w @replay/dashboard",
     "services:up": "docker compose up -d --wait",
