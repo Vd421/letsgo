@@ -1,0 +1,5 @@
+# Extra tools for development and CI only (not needed to run the API).
+-r requirements.txt
+pytest==9.1.1    # test runner (like Vitest)
+httpx==0.28.1    # HTTP client used by FastAPI's TestClient (like Supertest)
+ruff==0.16.10    # linter + formatter (like ESLint + Prettier)

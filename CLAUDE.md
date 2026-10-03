@@ -5,26 +5,32 @@ stores them, lets you replay them in a dashboard, and uses the Claude API to sum
 sessions and flag likely bugs.
 
 ## Architecture (planned)
-rrweb recorder (browser) → Express API → Postgres (metadata) + Cloudflare R2 (event blobs)
-→ Redis + BullMQ (background jobs, e.g. AI analysis) → React dashboard.
-AI summaries/bug detection via the Claude API. Python used later for AI evals.
+rrweb recorder (browser) → FastAPI (Python) → Postgres (metadata) + AWS S3 (event blobs)
+→ Redis + Celery (background jobs, e.g. AI analysis) → React dashboard.
+AI summaries/bug detection via the Claude API. AI evals in Python.
+Stack switched on 2026-10-03 (from Express/TS backend) because vd wants a Python, job-market-focused stack.
 
-## Folder structure (planned monorepo, npm workspaces)
-- apps/dashboard   → React + Vite + Tailwind dashboard
-- apps/api         → Express server (routes/, services/, jobs/, db/)
+## Folder structure (planned monorepo)
+- apps/dashboard   → React + TypeScript + Vite + Tailwind dashboard (npm workspace)
+- apps/api-py      → FastAPI server (Python, venv + pip + requirements.txt)
+- apps/api         → OLD Express server, to be deleted (Python API replaces it)
 - apps/demo-site   → fake shop used to test recording
 - packages/recorder → the rrweb snippet sites install
 - packages/shared  → types shared by frontend and backend
 - evals/           → Python evals for AI summaries (later)
 
 ## Tech stack
-- Language: TypeScript everywhere (Python only for evals)
-- Frontend: React + Vite + Tailwind CSS
-- Backend: Node.js + Express
-- Database: Postgres (Neon), via Prisma
-- Storage: Cloudflare R2 (S3-compatible) for session events
-- Queue: Redis + BullMQ
-- Infra: Docker (local Postgres + Redis), GitHub Actions for CI
+- Backend: Python 3.12 + FastAPI, Pydantic (validation), uvicorn (server)
+- Database: Postgres, via SQLAlchemy + Alembic (migrations)
+- Queue: Redis + Celery
+- Storage: AWS S3 for session events
+- AI: Claude API; evals in Python
+- Tests: pytest. Lint/format: Ruff (Python), ESLint + Prettier (frontend)
+- Frontend + recorder: TypeScript, React + Vite + Tailwind CSS (browsers only run JavaScript)
+- Infra: Docker (local Postgres + Redis), GitHub Actions for CI, deploy to AWS later
+- Python tooling: plain venv + pip (chosen to teach the basics). Run Python with `py` on this machine
+  (`python` is a broken Windows Store alias). Use `py -3.12`: the C:\Python313 install is broken
+  (no Lib folder, "Could not find platform independent libraries"). Inside the venv, plain `python` works.
 
 ## Commands
 Run from the repo root:
@@ -35,11 +41,13 @@ Run from the repo root:
 - `npm run services:up`  → start local Postgres (port 5432) + Redis (port 6379) in Docker
 - `npm run services:down` → stop them (data is kept in Docker volumes)
 
-- `npm run dev -w @replay/api` → start the API on http://localhost:4000 (restarts on save)
-- `npm run typecheck -w @replay/api` → TypeScript type check for the API
-- `npm run db:migrate -w @replay/api` → after editing prisma/schema.prisma: create + apply a migration
-- `npm run db:generate -w @replay/api` → regenerate the Prisma client (also runs on `npm install`)
-- `npm run db:studio -w @replay/api` → Prisma Studio: view/edit database rows in the browser
+Python API, run from apps/api-py with the venv active (`source .venv/Scripts/activate`):
+- `pip install -r requirements-dev.txt` → install Python packages into .venv
+- `python -m app.main` → start the API on http://localhost:4000 (restarts on save); docs at /docs
+- `pytest` → run tests (creates/uses a separate `replay_test` database)
+- `ruff check .` / `ruff format .` → lint / auto-format Python
+- `alembic revision --autogenerate -m "msg"` → after editing app/models.py: write a migration
+- `alembic upgrade head` → apply migrations
 
 Docker Desktop must be running first ("Engine running").
 
@@ -51,8 +59,15 @@ Phase 1 (Express API + database), approved plan, on branch `feature/api`:
 1. Express + TS + tsx dev server (DONE)  2. GET /health (DONE)
 3. .env loading via Node --env-file-if-exists + src/config.ts (DONE)
 4. Prisma + Session table (DONE)  5. POST/GET /sessions with Zod (DONE, src/routes/sessions.ts)
-6. Vitest + Supertest tests (NEXT)  7. CI runs typecheck + tests  8. README/CLAUDE.md, PR + merge.
-Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claude AI, 6 deploy + evals.
+6-8 (tests, CI, PR) were never done in TypeScript; feature/api was never merged.
+Steps 1-5 above were built in TypeScript, then the stack switched to Python (2026-10-03).
+Phase 1b (rebuild API in Python), approved plan, on branch `feature/python-api`, folder apps/api-py:
+Steps 0-7 built together on 2026-10-03 at vd's request: venv, FastAPI /health, config.py
+(pydantic-settings), SQLAlchemy model `ReplaySession` (table `sessions`) + Alembic, POST/GET /sessions
+(Pydantic, camelCase JSON like the old API, bad data → 422), pytest, Ruff, CI job `api-py`.
+Old Prisma tables ("Session", _prisma_migrations) are left in the local DB; they don't clash.
+TODO: vd deletes apps/api (old Express API) + runs `npm install`; then commit, push, PR + merge.
+Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claude AI, 6 deploy (AWS) + evals.
 
 ## Git workflow (what we actually do)
 - Remote: https://github.com/Vd421/letsgo (`origin`), default branch `main`.
@@ -61,10 +76,7 @@ Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 R2, 5 BullMQ + Claud
   → delete the branch.
 - Guide PRs one click at a time; vd finds long multi-step instructions hard to follow.
 Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
-Note: Prisma pinned to 7.10.0 (npm "latest" tag is an 8.0 release candidate). Prisma 7 setup:
-`prisma-client` generator → apps/api/src/generated/prisma (git-ignored), config in apps/api/prisma.config.ts
-(loads ../../.env), connection via @prisma/adapter-pg in src/db.ts. npm audit "high" warnings come from
-the prisma CLI's own deps (deepmerge-ts, mysql2); the suggested fix downgrades Prisma, so ignored for now.
+Note: apps/api (Express + Prisma 7) is the old TypeScript API, kept only until vd deletes it.
 
 ## About the developer
 vd is a beginner learning full-stack development by building this project.

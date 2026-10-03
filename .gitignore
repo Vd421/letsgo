@@ -26,6 +26,8 @@ Thumbs.db
 # Claude Code personal settings (per-person, not shared)
 .claude/settings.local.json
 
-# Python (for evals later)
+# Python (API in apps/api-py, evals later)
 __pycache__/
 .venv/
+.pytest_cache/
+.ruff_cache/
