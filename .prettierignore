@@ -8,3 +8,6 @@ package-lock.json
 
 # Hand-written docs keep their own formatting
 *.md
+
+# Design mockups: single-file HTML prototypes, kept exactly as approved
+docs/design/
