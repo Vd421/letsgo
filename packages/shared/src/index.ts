@@ -11,6 +11,21 @@ export type Session = {
   eventCount: number; // recorded events saved so far
 };
 
+/** One click, for the "clicks over time" strip. */
+export type ClickMark = {
+  at: number; // where in the visit: 0 = start, 1 = end
+  rage: boolean; // part of a rage-click burst (repeated clicks the page didn't react to)
+};
+
+/** A session plus what the API worked out from its events (GET /sessions, GET /sessions/{id}). */
+export type SessionSummary = Session & {
+  durationMs: number;
+  clickCount: number;
+  rageClickCount: number;
+  hasRage: boolean;
+  clicks: ClickMark[];
+};
+
 /** What POST /sessions expects. */
 export type SessionCreate = {
   url: string;

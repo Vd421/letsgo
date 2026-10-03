@@ -35,6 +35,23 @@ class SessionOut(CamelModel):
     event_count: int
 
 
+class ClickMark(CamelModel):
+    """One click, for drawing the "clicks over time" strip."""
+
+    at: float  # where in the visit: 0 = start, 1 = end
+    rage: bool  # part of a rage-click burst?
+
+
+class SessionSummary(SessionOut):
+    """A session plus what the API worked out from its events (see app/analysis.py)."""
+
+    duration_ms: int
+    click_count: int
+    rage_click_count: int
+    has_rage: bool
+    clicks: list[ClickMark]
+
+
 class EventBatchCreate(CamelModel):
     """What the recorder sends to POST /sessions/{id}/events: a few seconds of rrweb events."""
 

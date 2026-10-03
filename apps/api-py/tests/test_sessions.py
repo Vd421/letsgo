@@ -53,7 +53,12 @@ def test_get_one_session(client: TestClient) -> None:
     response = client.get(f"/sessions/{created['id']}")
 
     assert response.status_code == 200
-    assert response.json() == created  # the same session we just made
+    body = response.json()
+    assert {k: body[k] for k in created} == created  # the same session we just made…
+    # …plus the analysis. No events yet, so all zero.
+    assert body["clickCount"] == 0
+    assert body["hasRage"] is False
+    assert body["clicks"] == []
 
 
 def test_get_missing_session_is_404(client: TestClient) -> None:
