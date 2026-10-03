@@ -77,19 +77,29 @@ Phase 2 (recorder + demo shop), approved plan, on branch `feature/recorder` (bui
 3. CORS (settings.cors_origins, default http://localhost:5173)  4. apps/demo-site: Vite + plain TS shop
 with a deliberate bug (checkout silently fails over $100)  5. packages/recorder: rrweb 2.1.7,
 startRecording(), batches every 5s, maskAllInputs  6. checked end-to-end with headless Edge
-7. CI runs `npm run typecheck`. NEXT: vd tries the shop by hand, then commit, push, PR + merge.
-Events live in Postgres for now; Phase 4 moves them to S3.
+7. CI runs `npm run typecheck`. Merged as PR #5 on 2026-10-03. Also tested with 10 Playwright
+shoppers (6 orders OK, 4 hit the bug as designed). Events live in Postgres for now; Phase 4 moves them to S3.
+Phase 3 (dashboard + replay player), PLANNED, choices not yet confirmed by vd (recommended: React Router,
+🔥 rage-click badge = 3+ clicks on the same spot within 2s): 0. notes + CLAUDE.md (branch docs/notes)
+1. apps/dashboard: React + TS + Vite + Tailwind on port 5174, add to CORS  2. Session type in packages/shared
+3. GET /sessions/{id}  4. sessions list page  5. replay page (rrweb player)  6. loading/error states
+7. tests (pytest + Vitest) in CI  8. try it for real  9. docs + PR.
+Full learning notes of everything so far: notes/everything-so-far.md.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claude AI, 6 deploy (AWS) + evals.
 
 ## Git workflow (what we actually do)
 - Remote: https://github.com/Vd421/letsgo (`origin`), default branch `main`.
 - Per feature: new branch (e.g. `setup/ci`, `feature/express-server`) → commit → push →
-  vd opens + merges the Pull Request on github.com (no `gh` CLI installed) → `git pull` on main
-  → delete the branch.
+  Pull Request → vd merges on github.com → `git pull` on main → delete the branch.
+- No `gh` CLI. Claude can open PRs and read CI results via the GitHub REST API, using the token
+  from `git credential fill` (never print it). Merging into main is ALWAYS vd's click (blocked for Claude).
 - Guide PRs one click at a time; vd finds long multi-step instructions hard to follow.
 Note: TypeScript is pinned to 6.0.x because typescript-eslint doesn't support TS 7 yet.
+
 ## About the developer
 vd is a beginner learning full-stack development by building this project.
+Started frontend from zero knowledge on 2026-10-03: wants to learn "side by side" (a short lesson,
+then a small build step, repeat), in easy plain English (not childish), with their own code as examples.
 Dev machine is Windows, using Git Bash in VS Code. Give Git Bash-compatible commands.
 
 ## How to work with me
