@@ -1,4 +1,4 @@
-﻿# Replay
+# Replay
 
 A session-replay tool with AI bug detection. It records user sessions in the browser,
 stores them, lets you replay them in a dashboard, and uses the Claude API to summarize
