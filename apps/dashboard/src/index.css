@@ -1,0 +1,7 @@
+/* Switch on Tailwind: after this, labels like "p-4" or "bg-white" work in every component. */
+@import "tailwindcss";
+
+/* The whole page: light grey background, so white cards stand out. */
+body {
+  @apply bg-gray-50 text-gray-900;
+}

@@ -1,0 +1,15 @@
+{
+  // Shared rules live in the base file; these are the dashboard-specific extras.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Browser code, bundled by Vite: modern modules, the browser's types (DOM), and Vite's own.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+
+    // Allow JSX (the HTML-like code inside .tsx files), using React's modern setup.
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}
