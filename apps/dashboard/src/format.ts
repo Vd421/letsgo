@@ -12,10 +12,13 @@ export function browserName(userAgent: string | null): string {
   return "Other";
 }
 
-/** 9043 milliseconds → "0:09", 95000 → "1:35". */
+/** 9043 milliseconds → "0:09", 95000 → "1:35", 6413000 → "1:46:53". */
 export function formatDuration(ms: number): string {
   const seconds = Math.round(ms / 1000);
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const ss = String(seconds % 60).padStart(2, "0");
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}:${ss}`;
+  const mm = String(Math.floor(seconds / 60) % 60).padStart(2, "0");
+  return `${Math.floor(seconds / 3600)}:${mm}:${ss}`;
 }
 
 /** Like formatDuration, but with tenths of a second for short visits: 1400 → "0:01.4".

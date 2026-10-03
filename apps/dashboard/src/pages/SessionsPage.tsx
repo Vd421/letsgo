@@ -1,35 +1,20 @@
 // Sessions: every recorded visit, newest first, with a "clicks over time" strip and rage badges.
 // Uses the same fonts as Tiny Shop (font-shop / font-shop-display), as in the approved design.
 import type { SessionSummary } from "@replay/shared";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { listSessions } from "../api";
 import { browserName, formatDay, formatDuration, formatTime, shortUrl } from "../format";
 import { IconFlame, IconPlay } from "../icons";
 import { Notice } from "../ui";
-import { isReplayable } from "./LatestReplayPage";
+import { isReplayable, useSessions } from "../useSessions";
 
 type Filter = "all" | "rage" | "calm";
-const REFRESH_MS = 10_000; // new visits show up without reloading the page
 
 export function SessionsPage() {
-  // undefined = still loading, null = the API couldn't be reached
-  const [sessions, setSessions] = useState<SessionSummary[] | null | undefined>(undefined);
+  const { sessions, reload: load } = useSessions(); // refreshes every 10 seconds
   const [filter, setFilter] = useState<Filter>("all");
   const [params] = useSearchParams();
   const query = (params.get("q") ?? "").trim().toLowerCase(); // typed in the top bar's search
-
-  const load = useCallback(() => {
-    listSessions()
-      .then(setSessions)
-      .catch(() => setSessions(null));
-  }, []);
-
-  useEffect(() => {
-    load();
-    const timer = setInterval(load, REFRESH_MS);
-    return () => clearInterval(timer);
-  }, [load]);
 
   // Hide empty visits: the visitor left before anything was sent, so there's nothing to watch.
   const all = (sessions ?? []).filter(isReplayable);
