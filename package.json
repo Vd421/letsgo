@@ -23,6 +23,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "shop": "npm run dev -w @replay/demo-site",
     "services:up": "docker compose up -d --wait",
     "services:down": "docker compose down"
   }

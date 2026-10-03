@@ -45,7 +45,8 @@ def engine() -> Iterator[Engine]:
 def client(engine: Engine) -> Iterator[TestClient]:
     """A fake browser that sends requests to our app, using the empty test database."""
     with engine.begin() as conn:
-        conn.execute(text("TRUNCATE sessions"))  # every test starts with no rows
+        # Every test starts with no rows. CASCADE also empties session_events (linked to sessions).
+        conn.execute(text("TRUNCATE sessions CASCADE"))
 
     TestingSessionLocal = sessionmaker(bind=engine)
 

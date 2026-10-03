@@ -1,0 +1,12 @@
+{
+  // Shared rules live in the base file; these are the shop-specific extras.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Browser code, bundled by Vite: modern modules, the browser's types (DOM), and Vite's own.
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["vite/client"]
+  },
+  "include": ["src"]
+}
