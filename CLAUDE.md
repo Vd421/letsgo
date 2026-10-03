@@ -79,11 +79,41 @@ with a deliberate bug (checkout silently fails over $100)  5. packages/recorder:
 startRecording(), batches every 5s, maskAllInputs  6. checked end-to-end with headless Edge
 7. CI runs `npm run typecheck`. Merged as PR #5 on 2026-10-03. Also tested with 10 Playwright
 shoppers (6 orders OK, 4 hit the bug as designed). Events live in Postgres for now; Phase 4 moves them to S3.
-Phase 3 (dashboard + replay player), PLANNED, choices not yet confirmed by vd (recommended: React Router,
-🔥 rage-click badge = 3+ clicks on the same spot within 2s): 0. notes + CLAUDE.md (branch docs/notes)
-1. apps/dashboard: React + TS + Vite + Tailwind on port 5174, add to CORS  2. Session type in packages/shared
-3. GET /sessions/{id}  4. sessions list page  5. replay page (rrweb player)  6. loading/error states
-7. tests (pytest + Vitest) in CI  8. try it for real  9. docs + PR.
+Phase 3 (dashboard + replay player), on branch `feature/dashboard`:
+0. notes + CLAUDE.md (DONE, PR #6)  1. apps/dashboard: React 19 + TS + Vite 8 + Tailwind 4, port 5174, in CORS (DONE)
+2. Session/SessionCreate/EventBatchSaved types in packages/shared, used by dashboard + recorder (DONE)
+3. GET /sessions/{id} + tests (DONE)  Also: Tiny Shop restyled (Bricolage Grotesque + Figtree) (DONE).
+Steps 1-3 committed 2026-10-04, not yet PR'd.
+DESIGN APPROVED by vd on 2026-10-04 after many rounds: docs/design/dashboard-mockup.html (open it in a browser;
+also published at https://claude.ai/artifact/XUtDquUUMCxHhZR9wVLgtN). Build the real dashboard to match it:
+- Dark-first (near-black #0b0b0c, panels #161618 / #1f1f22, radius ~24px), light mode via toggle.
+- Only two accents: orange-red #f0623f = problems/rage, violet #8d90f7 = normal activity/good outcomes.
+  Text calm: soft white headings, grey labels. No gradient text, no coloured headings ("not flashy").
+- Fonts: Funnel Display (numbers) + Funnel Sans (text) + Geist Mono (times/IDs); the Sessions page and the
+  Recent visits table use Bricolage Grotesque + Figtree (same as Tiny Shop).
+- Pages: Overview (4 KPI cards with badges, "Clicks by visitor" heatmap, "Events per visit" line chart with
+  hover tooltip, Outcomes tiles, Recent visits table), Sessions (table with click strips + filter chips),
+  Replay (browser frame, own controls: play/restart/speed/skip idle/fullscreen, activity timeline with click
+  dots + rage zone, Moments/Visitor/AI tabs; autoplays on open; no decorative background).
+- vd rejected: ghost-cursor background on the replay page, big marketing headline, dark-navy separate stage.
+DONE 2026-10-04: 4a design tokens (apps/dashboard/src/index.css: @theme inline over CSS vars, dark default,
+data-theme="light" + localStorage "replay-theme")  4b shell: React Router 8 (BrowserRouter), Layout/Sidebar/
+TopBar, routes / (Overview placeholder), /sessions, /sessions/:id (Replay placeholder), /replay (→ newest)
+4d rage detection: app/analysis.py (pure analyze(events)). Rage = 3+ DEAD clicks (no rrweb mutation within
+500ms) on the same element / within 30px, inside 2s. First version without the dead-click check wrongly
+flagged "4 T-shirts" (fast Add clicks); real recordings exposed it. GET /sessions and /sessions/{id} now
+return SessionSummary (durationMs, clickCount, rageClickCount, hasRage, clicks[{at,rage}]); computed per
+request (fine for now). 4c Sessions page with real data (filters, search via ?q=, 10s refresh, states).
+Also: Tiny Shop validates the email at checkout (type=email + pattern, red message, no order).
+DONE 2026-10-04: 5 Replay page (rrweb Replayer driven by replay/useReplayer.ts, our own Theatre/Timeline/
+Controls/Inspector, Moments built from events in replay/moments.ts, fits tall/narrow windows)
+6 Overview from real data (computeStats in src/stats.ts, done in the browser for local time zones;
+KpiCards, Heatmap "Visits by time", hand-drawn SVG EventsChart, Outcomes, RecentVisits).
+Empty visits (eventCount < 3) are hidden everywhere. vd chose to open the PR after step 6;
+LATER (next PR): 7 polish, 8 Vitest tests for stats.ts/moments.ts/format.ts + CI, delete test-robot
+visits only if vd agrees.
+Note: on this Windows laptop `uvicorn --reload` got stuck twice (old code kept answering). Run the API
+without --reload and restart it after API changes; check for leftovers on port 4000.
 Full learning notes of everything so far: notes/everything-so-far.md.
 Later phases: 2 recorder + demo shop, 3 dashboard replay, 4 S3, 5 Celery + Claude AI, 6 deploy (AWS) + evals.
 

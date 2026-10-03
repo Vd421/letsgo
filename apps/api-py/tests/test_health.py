@@ -24,6 +24,12 @@ def test_cors_allows_demo_shop(client: TestClient) -> None:
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
 
 
+def test_cors_allows_dashboard(client: TestClient) -> None:
+    response = client.get("/health", headers={"Origin": "http://localhost:5174"})
+
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5174"
+
+
 def test_cors_blocks_other_sites(client: TestClient) -> None:
     response = client.get("/health", headers={"Origin": "https://evil.example.com"})
 

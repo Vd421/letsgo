@@ -36,7 +36,8 @@ function cartTotal(): number {
 function renderProducts(): void {
   $("products").innerHTML = products
     .map(
-      (p) => `<li><span>${p.name}, $${p.price}</span>
+      (p) => `<li><span class="item"><span class="name">${p.name}</span>
+        <span class="price">$${p.price}</span></span>
         <button data-add="${p.id}">Add to cart</button></li>`,
     )
     .join("");
@@ -46,7 +47,7 @@ function renderCart(): void {
   const lines = [...cart].map(([id, quantity]) => {
     const product = products.find((p) => p.id === id)!;
     return `<li><span>${product.name} × ${quantity}</span>
-      <button data-remove="${id}">Remove</button></li>`;
+      <button class="remove" data-remove="${id}">Remove</button></li>`;
   });
   $("cart").innerHTML = lines.join("") || "<li>Empty</li>";
   $("total").textContent = `$${cartTotal()}`;
@@ -69,9 +70,36 @@ document.addEventListener("click", (event) => {
   renderCart();
 });
 
+const emailInput = $("email") as HTMLInputElement;
+
+// Is the email box filled in with a real-looking address? If not, explain what's wrong under
+// the box and return false. The browser does the actual checking (type="email" + pattern).
+function emailIsValid(): boolean {
+  const empty = emailInput.value.trim() === "";
+  const valid = !empty && emailInput.checkValidity();
+  $("email-error").textContent = valid
+    ? ""
+    : empty
+      ? "Please enter your email so we can send the receipt."
+      : "That doesn't look like an email address. It should look like you@example.com.";
+  emailInput.setAttribute("aria-invalid", String(!valid));
+  return valid;
+}
+
+// Once an error is showing, re-check as they type, so it disappears as soon as it's fixed.
+emailInput.addEventListener("input", () => {
+  if (emailInput.getAttribute("aria-invalid") === "true") emailIsValid();
+});
+
 $("checkout").addEventListener("click", () => {
   if (cart.size === 0) {
     $("message").textContent = "Your cart is empty.";
+    return;
+  }
+
+  if (!emailIsValid()) {
+    $("message").textContent = "";
+    emailInput.focus(); // put the cursor where the problem is
     return;
   }
 

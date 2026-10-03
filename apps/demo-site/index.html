@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tiny Shop (Replay demo)</title>
+    <!-- Fonts: Bricolage Grotesque for headings, Figtree for everything else. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"
+    />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -24,8 +31,19 @@
         <p>Total: <strong id="total">$0</strong></p>
         <label>
           Email for the receipt
-          <input id="email" type="email" placeholder="you@example.com" />
+          <!-- type="email" + pattern: the browser checks the address for us (pattern adds "needs a
+               dot after the @", e.g. you@example.com, which type="email" alone doesn't require). -->
+          <input
+            id="email"
+            type="email"
+            required
+            autocomplete="email"
+            pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+            placeholder="you@example.com"
+            aria-describedby="email-error"
+          />
         </label>
+        <p id="email-error" class="field-error" role="alert"></p>
         <button id="checkout">Checkout</button>
         <p id="message" role="status"></p>
       </aside>

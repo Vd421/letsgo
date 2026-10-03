@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Replay dashboard</title>
+    <!-- Tab icon: the orange cursor logo, drawn inline so there's no extra file to load. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23f0623f'/%3E%3Cpath d='M10 7l14 9-6.5 1.4L14.5 24z' fill='white'/%3E%3C/svg%3E"
+    />
+    <!-- Fonts from the approved design (see src/index.css for where each is used). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@500;600;700&family=Funnel+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap"
+    />
+    <!-- Apply the saved theme before the page draws, so it never flashes the wrong colours. -->
+    <script>
+      try {
+        if (localStorage.getItem("replay-theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+        }
+      } catch {
+        /* storage blocked: stay dark */
+      }
+    </script>
+  </head>
+  <body>
+    <!-- React draws the whole dashboard inside this one empty box. -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

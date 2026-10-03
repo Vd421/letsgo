@@ -6,7 +6,8 @@ Session replay with AI bug detection. Replay records what users do on a website,
 watch those sessions back in a dashboard, and uses the Claude API to summarize each session
 and flag likely bugs.
 
-> 🚧 **Work in progress.** The Python API (FastAPI + Postgres) has `/health` and `/sessions`.
+> 🚧 **Work in progress.** Recording, rage-click detection, and a dashboard to watch visits
+> back are working. AI summaries come next.
 
 ## How it works (planned)
 
@@ -98,16 +99,24 @@ Run from the repo root:
 | `npm run lint`          | Find likely bugs with ESLint                |
 | `npm run format`        | Auto-format code with Prettier              |
 | `npm run format:check`  | Check formatting without changing files     |
-| `npm run typecheck`     | TypeScript check for the shop and recorder  |
+| `npm run typecheck`     | TypeScript check for every app              |
 | `npm run shop`          | Start the demo shop on http://localhost:5173 |
+| `npm run dashboard`     | Start the dashboard on http://localhost:5174 |
 
-## Try the recorder
+## Try it
 
-With the services and the Python API running, start the demo shop (`npm run shop`) and
-open http://localhost:5173. Click around: every 5 seconds the recorder sends what you did
-to the API. Watch `eventCount` grow at http://localhost:4000/sessions.
+With the services and the Python API running:
 
-The shop has one bug on purpose: checkout silently does nothing when the total is over $100.
+1. `npm run shop` and open http://localhost:5173. Click around: every 5 seconds the recorder
+   sends what you did to the API. The shop has one bug on purpose: checkout silently does
+   nothing when the total is over $100. Try it and press Checkout a few times.
+2. `npm run dashboard` and open http://localhost:5174:
+   - **Overview**: visit counts, rage-click rate, busy times, events per visit.
+   - **Sessions**: every visit, with rage clicks marked in orange.
+   - **Replay**: click a visit to watch it again, with a timeline and a list of what happened.
+
+**Rage click** = 3+ clicks on the same spot within 2 seconds where the page didn't react
+(see `apps/api-py/app/analysis.py`).
 
 Every push to `main` and every Pull Request runs these checks in GitHub Actions:
 `lint` + `format:check` + `typecheck` for TypeScript, and Ruff + migrations + pytest for the Python API.
