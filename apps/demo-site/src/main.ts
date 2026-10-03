@@ -70,9 +70,36 @@ document.addEventListener("click", (event) => {
   renderCart();
 });
 
+const emailInput = $("email") as HTMLInputElement;
+
+// Is the email box filled in with a real-looking address? If not, explain what's wrong under
+// the box and return false. The browser does the actual checking (type="email" + pattern).
+function emailIsValid(): boolean {
+  const empty = emailInput.value.trim() === "";
+  const valid = !empty && emailInput.checkValidity();
+  $("email-error").textContent = valid
+    ? ""
+    : empty
+      ? "Please enter your email so we can send the receipt."
+      : "That doesn't look like an email address. It should look like you@example.com.";
+  emailInput.setAttribute("aria-invalid", String(!valid));
+  return valid;
+}
+
+// Once an error is showing, re-check as they type, so it disappears as soon as it's fixed.
+emailInput.addEventListener("input", () => {
+  if (emailInput.getAttribute("aria-invalid") === "true") emailIsValid();
+});
+
 $("checkout").addEventListener("click", () => {
   if (cart.size === 0) {
     $("message").textContent = "Your cart is empty.";
+    return;
+  }
+
+  if (!emailIsValid()) {
+    $("message").textContent = "";
+    emailInput.focus(); // put the cursor where the problem is
     return;
   }
 

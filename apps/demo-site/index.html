@@ -31,8 +31,19 @@
         <p>Total: <strong id="total">$0</strong></p>
         <label>
           Email for the receipt
-          <input id="email" type="email" placeholder="you@example.com" />
+          <!-- type="email" + pattern: the browser checks the address for us (pattern adds "needs a
+               dot after the @", e.g. you@example.com, which type="email" alone doesn't require). -->
+          <input
+            id="email"
+            type="email"
+            required
+            autocomplete="email"
+            pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+            placeholder="you@example.com"
+            aria-describedby="email-error"
+          />
         </label>
+        <p id="email-error" class="field-error" role="alert"></p>
         <button id="checkout">Checkout</button>
         <p id="message" role="status"></p>
       </aside>

@@ -149,6 +149,22 @@ button.remove:hover {
   color: #1c1c1e;
 }
 
+/* Email problems: red box + a short message under it. */
+input[aria-invalid="true"] {
+  border-color: #d93025;
+  outline-color: #d93025;
+}
+
+.field-error {
+  margin: -0.5rem 0 0.9rem;
+  color: #d93025;
+  font-size: 0.85rem;
+}
+
+.field-error:empty {
+  display: none;
+}
+
 #message {
   color: #1a7f37;
   font-weight: 500;
