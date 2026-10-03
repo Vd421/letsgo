@@ -38,6 +38,12 @@ def get_session_or_404(db: DbSession, session_id: uuid.UUID) -> ReplaySession:
     return session
 
 
+# GET /sessions/{id} → one session's details (the replay page shows these above the player).
+@router.get("/{session_id}", response_model=SessionOut)
+def get_session(session_id: uuid.UUID, db: DbSession) -> ReplaySession:
+    return get_session_or_404(db, session_id)
+
+
 # POST /sessions/{id}/events → the recorder sends a batch of events every few seconds.
 @router.post(
     "/{session_id}/events",

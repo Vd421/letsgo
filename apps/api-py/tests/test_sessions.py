@@ -47,6 +47,28 @@ def test_create_session_rejects_too_long_user_agent(client: TestClient) -> None:
     assert response.status_code == 422
 
 
+def test_get_one_session(client: TestClient) -> None:
+    created = client.post("/sessions", json={"url": "https://shop.example.com/"}).json()
+
+    response = client.get(f"/sessions/{created['id']}")
+
+    assert response.status_code == 200
+    assert response.json() == created  # the same session we just made
+
+
+def test_get_missing_session_is_404(client: TestClient) -> None:
+    response = client.get("/sessions/00000000-0000-0000-0000-000000000000")
+
+    assert response.status_code == 404
+
+
+def test_get_session_with_bad_id_is_422(client: TestClient) -> None:
+    # "banana" isn't a valid ID at all, so FastAPI rejects it before looking anything up.
+    response = client.get("/sessions/banana")
+
+    assert response.status_code == 422
+
+
 def test_list_sessions_is_empty_at_first(client: TestClient) -> None:
     response = client.get("/sessions")
 
