@@ -1,6 +1,7 @@
 // Every call the dashboard makes to the Python API lives here, in one place.
 // The return types come from @replay/shared, so TypeScript knows exactly what each answer contains.
 import type { SessionSummary } from "@replay/shared";
+import type { eventWithTime } from "@rrweb/types";
 
 export const API_URL = "http://localhost:4000";
 
@@ -32,4 +33,9 @@ export function listSessions(): Promise<SessionSummary[]> {
 /** One session's details and analysis. Throws if it doesn't exist (404). */
 export function getSession(id: string): Promise<SessionSummary> {
   return getJson<SessionSummary>(`/sessions/${id}`);
+}
+
+/** Everything rrweb recorded for one visit, oldest first. This is what the replay plays. */
+export function getEvents(id: string): Promise<eventWithTime[]> {
+  return getJson<eventWithTime[]>(`/sessions/${id}/events`);
 }

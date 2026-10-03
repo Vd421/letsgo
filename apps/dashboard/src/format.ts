@@ -18,6 +18,15 @@ export function formatDuration(ms: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+/** Like formatDuration, but with tenths of a second for short visits: 1400 → "0:01.4".
+ *  Fast visits (like test robots) happen within a second or two; tenths keep their order visible. */
+export function formatClock(ms: number, totalMs: number): string {
+  if (totalMs >= 60_000) return formatDuration(ms);
+  const tenths = Math.floor(ms / 100);
+  const seconds = Math.floor(tenths / 10);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}.${tenths % 10}`;
+}
+
 /** "2026-10-03T16:41:41Z" → "22:11" in the viewer's own time zone. */
 export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
