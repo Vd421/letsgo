@@ -61,6 +61,8 @@ function summary(rageFlags: boolean[]): SessionSummary {
     id: "v",
     url: "http://localhost:5173/",
     userAgent: null,
+    aiStatus: null,
+    aiBugCount: 0,
     startedAt: new Date(T0).toISOString(),
     endedAt: null,
     eventCount: 0,
