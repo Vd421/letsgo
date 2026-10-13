@@ -3,7 +3,7 @@
 // the page is closed.
 import type { SessionAnalysis } from "@replay/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { hasTimedOut, POLL_MS, shouldPoll } from "./analysis";
+import { hasTimedOut, isNotConfiguredError, POLL_MS, shouldPoll } from "./analysis";
 import { ApiError, getAiStatus, getAnalysis, startAnalysis } from "./api";
 
 export type AnalysisState = {
@@ -11,6 +11,8 @@ export type AnalysisState = {
   analysis: SessionAnalysis | null | undefined;
   /** Is a key set up on the API? undefined = unknown (still checking, or the check failed) */
   configured: boolean | undefined;
+  /** The Claude model the API will use (from /config/ai), if known */
+  model: string | undefined;
   /** True once the AI-status check has finished, whether it worked or not */
   statusChecked: boolean;
   /** A short message when loading or starting failed */
@@ -26,6 +28,7 @@ export type AnalysisState = {
 export function useAnalysis(sessionId: string): AnalysisState {
   const [analysis, setAnalysis] = useState<SessionAnalysis | null | undefined>(undefined);
   const [configured, setConfigured] = useState<boolean | undefined>(undefined);
+  const [model, setModel] = useState<string | undefined>(undefined);
   const [statusChecked, setStatusChecked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
@@ -59,6 +62,7 @@ export function useAnalysis(sessionId: string): AnalysisState {
       .then((s) => {
         if (cancelled) return;
         setConfigured(s.configured);
+        setModel(s.model);
         setStatusChecked(true);
       })
       .catch(() => {
@@ -102,7 +106,8 @@ export function useAnalysis(sessionId: string): AnalysisState {
       .then((a) => stillHere() && setAnalysis(a))
       .catch((e: unknown) => {
         if (!stillHere()) return;
-        if (e instanceof ApiError && e.status === 503) setConfigured(false);
+        if (e instanceof ApiError && isNotConfiguredError(e.status, e.message))
+          setConfigured(false);
         setError(e instanceof ApiError ? e.message : "Couldn't start the analysis.");
       })
       .finally(() => stillHere() && setStarting(false));
@@ -116,5 +121,15 @@ export function useAnalysis(sessionId: string): AnalysisState {
       .catch(() => {});
   }, [sessionId]);
 
-  return { analysis, configured, statusChecked, error, starting, timedOut, start, checkAgain };
+  return {
+    analysis,
+    configured,
+    model,
+    statusChecked,
+    error,
+    starting,
+    timedOut,
+    start,
+    checkAgain,
+  };
 }

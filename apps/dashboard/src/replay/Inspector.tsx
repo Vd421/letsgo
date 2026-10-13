@@ -1,10 +1,13 @@
 // The panel next to the replay: Moments (what happened, lighting up as the replay reaches it),
-// Visitor (details about the visit) and AI (the Phase 5 summary, not built yet).
+// Visitor (details about the visit) and AI (Claude's summary of the visit and the bugs it spotted).
 import type { SessionSummary } from "@replay/shared";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { isWorking } from "../analysis";
 import { browserName, formatClock, formatDuration, shortUrl } from "../format";
 import { IconCursor, IconFlame } from "../icons";
+import { useAnalysis } from "../useAnalysis";
+import { AiPanel } from "./AiPanel";
 import type { Moment, MomentKind } from "./moments";
 
 type Tab = "moments" | "visitor" | "ai";
@@ -66,6 +69,10 @@ type Props = {
 export function Inspector({ moments, time, onSeek, session, screen }: Props) {
   const [tab, setTab] = useState<Tab>("moments");
   const listRef = useRef<HTMLOListElement>(null);
+  // Lives here (not in the AI tab) so the tab label can show the bug count and polling carries on
+  // while you look at another tab.
+  const ai = useAnalysis(session.id);
+  const bugCount = ai.analysis?.status === "done" ? ai.analysis.bugs.length : 0;
 
   // The active moment = the last one the replay has reached.
   let active = 0;
@@ -100,11 +107,28 @@ export function Inspector({ moments, time, onSeek, session, screen }: Props) {
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={`flex-1 rounded-full py-[7px] text-sm font-medium transition ${
+            className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-full py-[7px] text-sm font-medium transition ${
               tab === t ? "bg-panel text-ink ring-1 ring-line" : "text-muted hover:text-ink"
             }`}
           >
             {t === "ai" ? "AI" : t[0].toUpperCase() + t.slice(1)}
+            {t === "ai" && isWorking(ai.analysis?.status) && (
+              <>
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-violet motion-safe:animate-ai-pulse"
+                  aria-hidden="true"
+                />
+                <span className="sr-only">, analysing</span>
+              </>
+            )}
+            {t === "ai" && bugCount > 0 && (
+              <span
+                className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-accent-soft px-[5px] text-[11px] font-semibold text-accent tabular-nums"
+                aria-label={`${bugCount} possible ${bugCount === 1 ? "bug" : "bugs"}`}
+              >
+                {bugCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -188,17 +212,7 @@ export function Inspector({ moments, time, onSeek, session, screen }: Props) {
         </dl>
       )}
 
-      {tab === "ai" && (
-        <div className="m-1 rounded-[18px] bg-panel-2 p-[18px]">
-          <span className="mb-2 inline-block text-xs font-semibold tracking-wider text-violet uppercase">
-            AI summary · Phase 5
-          </span>
-          <p className="m-0 text-ink">
-            In Phase 5, Claude will watch this visit and write a short summary here, pointing out
-            anything that looks like a bug.
-          </p>
-        </div>
-      )}
+      {tab === "ai" && <AiPanel ai={ai} onSeek={onSeek} />}
     </div>
   );
 }

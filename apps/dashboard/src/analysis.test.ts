@@ -2,10 +2,13 @@ import type { BugFlag, SessionAnalysis } from "@replay/shared";
 import { describe, expect, it } from "vitest";
 import {
   aiMarkerLabel,
+  formatElapsed,
   hasTimedOut,
   isAiFlagged,
+  isNotConfiguredError,
   isWorking,
   POLL_LIMIT_MS,
+  secondsSince,
   shouldPoll,
   sortBugs,
 } from "./analysis";
@@ -42,11 +45,11 @@ describe("sortBugs", () => {
 describe("AI marker", () => {
   it("labels each state", () => {
     expect(aiMarkerLabel({ aiStatus: null, aiBugCount: 0 })).toBeNull();
-    expect(aiMarkerLabel({ aiStatus: "failed", aiBugCount: 0 })).toBeNull();
-    expect(aiMarkerLabel({ aiStatus: "queued", aiBugCount: 0 })).toBe("AI analysing…");
-    expect(aiMarkerLabel({ aiStatus: "done", aiBugCount: 0 })).toBe("AI: no bugs");
-    expect(aiMarkerLabel({ aiStatus: "done", aiBugCount: 1 })).toBe("AI: 1 bug");
-    expect(aiMarkerLabel({ aiStatus: "done", aiBugCount: 3 })).toBe("AI: 3 bugs");
+    expect(aiMarkerLabel({ aiStatus: "failed", aiBugCount: 0 })).toBe("failed");
+    expect(aiMarkerLabel({ aiStatus: "queued", aiBugCount: 0 })).toBe("analysing");
+    expect(aiMarkerLabel({ aiStatus: "done", aiBugCount: 0 })).toBe("no bugs");
+    expect(aiMarkerLabel({ aiStatus: "done", aiBugCount: 1 })).toBe("1 bug");
+    expect(aiMarkerLabel({ aiStatus: "done", aiBugCount: 3 })).toBe("3 bugs");
   });
   it("flags only finished analyses that found bugs", () => {
     expect(isAiFlagged({ aiStatus: "done", aiBugCount: 2 })).toBe(true);
@@ -79,5 +82,29 @@ describe("hasTimedOut", () => {
   it("gives up after the limit", () => {
     expect(hasTimedOut(POLL_LIMIT_MS - 1)).toBe(false);
     expect(hasTimedOut(POLL_LIMIT_MS)).toBe(true);
+  });
+});
+
+describe("elapsed time", () => {
+  it("counts seconds and never goes negative", () => {
+    const t = Date.parse("2026-10-14T10:00:00Z");
+    expect(secondsSince("2026-10-14T10:00:00Z", t + 5400)).toBe(5);
+    expect(secondsSince("2026-10-14T10:00:10Z", t)).toBe(0);
+    expect(secondsSince("not a date", t)).toBe(0);
+  });
+  it("formats m:ss", () => {
+    expect(formatElapsed(5)).toBe("0:05");
+    expect(formatElapsed(125)).toBe("2:05");
+  });
+});
+
+describe("isNotConfiguredError", () => {
+  it("is true only for a 503 that mentions the missing key", () => {
+    const noKey = "AI is not configured: add ANTHROPIC_API_KEY to .env";
+    expect(isNotConfiguredError(503, noKey)).toBe(true);
+    expect(isNotConfiguredError(503, "Could not queue the analysis: is Redis running?")).toBe(
+      false,
+    );
+    expect(isNotConfiguredError(500, noKey)).toBe(false);
   });
 });

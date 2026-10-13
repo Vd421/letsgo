@@ -85,3 +85,38 @@ body {
   outline-offset: 2px;
   border-radius: 10px;
 }
+
+/* Motion for the AI tab (docs/design/ai-summary.html). They are used as motion-safe:animate-ai-*,
+   so visitors who asked for less motion get still versions. Only opacity and transform move. */
+@theme {
+  --animate-ai-in: ai-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-ai-pulse: ai-pulse 1.4s ease-in-out infinite alternate;
+  --animate-ai-bar: ai-bar 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+  @keyframes ai-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes ai-pulse {
+    from {
+      opacity: 0.45;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes ai-bar {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(250%);
+    }
+  }
+}
