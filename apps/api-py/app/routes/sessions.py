@@ -1,6 +1,5 @@
 # Routes for /sessions: save and list sessions, and save and read their recorded events.
 import uuid
-from collections import defaultdict
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
@@ -8,7 +7,8 @@ from sqlalchemy import select
 
 from app.analysis import analyze
 from app.db import DbSession
-from app.models import EventBatch, ReplaySession
+from app.event_store import load_events
+from app.models import EventBatch, ReplaySession, SessionAnalysis
 from app.schemas import (
     ClickMark,
     EventBatchCreate,
@@ -24,22 +24,16 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 MAX_CLICK_MARKS = 300
 
 
-def load_events(
-    db: DbSession, session_ids: list[uuid.UUID]
-) -> dict[uuid.UUID, list[dict[str, Any]]]:
-    """All recorded events for these sessions, in one database query, grouped by session."""
-    events: dict[uuid.UUID, list[dict[str, Any]]] = defaultdict(list)
-    if session_ids:
-        batches = db.scalars(
-            select(EventBatch).where(EventBatch.session_id.in_(session_ids)).order_by(EventBatch.id)
-        )
-        for batch in batches:
-            events[batch.session_id].extend(batch.events)
-    return events
+def load_analyses(db: DbSession, session_ids: list[uuid.UUID]) -> dict[uuid.UUID, SessionAnalysis]:
+    """The AI analyses that exist for these sessions, in one database query."""
+    rows = db.scalars(select(SessionAnalysis).where(SessionAnalysis.session_id.in_(session_ids)))
+    return {row.session_id: row for row in rows}
 
 
-def summarize(session: ReplaySession, events: list[dict[str, Any]]) -> SessionSummary:
-    """The session's own fields, plus what analysis found in its events."""
+def summarize(
+    session: ReplaySession, events: list[dict[str, Any]], ai: SessionAnalysis | None = None
+) -> SessionSummary:
+    """The session's own fields, plus what analysis found in its events (and the AI's verdict)."""
     result = analyze(events)
     duration = result.duration_ms or 1  # avoid dividing by zero for empty visits
     return SessionSummary(
@@ -52,6 +46,8 @@ def summarize(session: ReplaySession, events: list[dict[str, Any]]) -> SessionSu
             ClickMark(at=round(c.at_ms / duration, 4), rage=c.rage)
             for c in result.clicks[:MAX_CLICK_MARKS]
         ],
+        ai_status=ai.status if ai else None,
+        ai_bug_count=len(ai.bugs) if ai and ai.status == "done" else 0,
     )
 
 
@@ -72,8 +68,10 @@ def create_session(body: SessionCreate, db: DbSession) -> ReplaySession:
 @router.get("", response_model=list[SessionSummary])
 def list_sessions(db: DbSession) -> list[SessionSummary]:
     sessions = list(db.scalars(select(ReplaySession).order_by(ReplaySession.started_at.desc())))
-    events = load_events(db, [s.id for s in sessions])
-    return [summarize(s, events[s.id]) for s in sessions]
+    ids = [s.id for s in sessions]
+    events = load_events(db, ids)
+    analyses = load_analyses(db, ids)
+    return [summarize(s, events[s.id], analyses.get(s.id)) for s in sessions]
 
 
 def get_session_or_404(db: DbSession, session_id: uuid.UUID) -> ReplaySession:
@@ -88,7 +86,8 @@ def get_session_or_404(db: DbSession, session_id: uuid.UUID) -> ReplaySession:
 @router.get("/{session_id}", response_model=SessionSummary)
 def get_session(session_id: uuid.UUID, db: DbSession) -> SessionSummary:
     session = get_session_or_404(db, session_id)
-    return summarize(session, load_events(db, [session.id])[session.id])
+    events = load_events(db, [session.id])[session.id]
+    return summarize(session, events, load_analyses(db, [session.id]).get(session.id))
 
 
 # POST /sessions/{id}/events → the recorder sends a batch of events every few seconds.
