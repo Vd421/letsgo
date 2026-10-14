@@ -2,7 +2,7 @@
 # Models (models.py) = what's in the database. Schemas (this file) = what's in requests/responses.
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 from pydantic.alias_generators import to_camel
@@ -12,6 +12,11 @@ class CamelModel(BaseModel):
     # Python uses snake_case (user_agent), JavaScript uses camelCase (userAgent).
     # This makes the JSON use camelCase, so the API looks exactly like the old Express one.
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+
+# Where an AI analysis is: waiting in the queue, being worked on, finished, or broken.
+AnalysisStatus = Literal["queued", "running", "done", "failed"]
+BugSeverity = Literal["low", "medium", "high"]
 
 
 class SessionCreate(CamelModel):
@@ -50,6 +55,9 @@ class SessionSummary(SessionOut):
     rage_click_count: int
     has_rage: bool
     clicks: list[ClickMark]
+    # From the AI analysis, if there is one (see SessionAnalysisOut below).
+    ai_status: AnalysisStatus | None = None  # None = never analysed
+    ai_bug_count: int = 0
 
 
 class EventBatchCreate(CamelModel):
@@ -65,3 +73,34 @@ class EventBatchSaved(CamelModel):
 
     received: int  # events in this batch
     event_count: int  # events saved for this session so far, in total
+
+
+class BugFlag(CamelModel):
+    """One likely bug the AI spotted in a visit."""
+
+    title: str = Field(min_length=1, max_length=200)  # short, e.g. "Checkout button does nothing"
+    severity: BugSeverity
+    at_ms: int | None = Field(default=None, ge=0)  # where in the visit, so the player can jump
+    evidence: str = Field(max_length=1000)  # 1-2 sentences: what suggests it
+
+
+class SessionAnalysisOut(CamelModel):
+    """What the API sends back for the AI analysis of one visit."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    session_id: uuid.UUID
+    status: AnalysisStatus
+    summary: str | None  # None until the analysis is done
+    bugs: list[BugFlag]  # empty until the analysis is done
+    model: str | None  # which Claude model wrote it
+    error: str | None  # short, safe message when it failed
+    created_at: datetime
+    updated_at: datetime
+
+
+class AiStatusOut(CamelModel):
+    """Tells the dashboard whether the AI button can work."""
+
+    configured: bool  # False = no ANTHROPIC_API_KEY set
+    model: str  # the Claude model that will be used

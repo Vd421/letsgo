@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routes import sessions
+from app.routes import analysis, sessions
 
 app = FastAPI(title="Replay API")
 
@@ -33,6 +33,8 @@ def health() -> dict[str, str]:
 
 # Every address starting with /sessions is handled by the sessions router.
 app.include_router(sessions.router)
+app.include_router(analysis.router)
+app.include_router(analysis.config_router)
 
 
 # This block only runs when you start this file directly (not when tests import it).

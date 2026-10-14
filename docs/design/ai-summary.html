@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replay AI Summary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=Funnel+Display:wght@500;600;700&family=Funnel+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Phase 5 mockup: the AI tab of the Replay inspector (all states) + the Sessions page AI marker and filter.
+   Built on docs/design/dashboard-mockup.html and the real tokens in apps/dashboard/src/index.css.
+   No new colours: orange-red = problems, violet = normal/good, everything else is grey. */
+:root {
+  --bg: #0b0b0c; --panel: #161618; --panel-2: #1f1f22; --line: #2a2a2e;
+  --ink: #f1f1f3; --text: #c8c8cd; --muted: #85858e;
+  --accent: #f0623f; --accent-soft: rgb(240 98 63 / .14);
+  --violet: #8d90f7; --violet-soft: rgb(141 144 247 / .14);
+  --on-color: #0b0b0c;
+  --font-display: "Funnel Display", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Funnel Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-shop-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-shop: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] {
+  --bg: #f2f2f4; --panel: #ffffff; --panel-2: #f3f3f5; --line: #e4e4e9;
+  --ink: #18181b; --text: #3b3b42; --muted: #74747d;
+  --accent: #e0512d; --accent-soft: rgb(224 81 45 / .1);
+  --violet: #5d61e4; --violet-soft: rgb(93 97 228 / .1);
+  --on-color: #ffffff;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.5;
+  padding: 20px clamp(16px, 2.4vw, 28px) 48px; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; }
+button:not(:disabled) { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; border-radius: 10px; }
+h1, h2, h3 { color: var(--ink); margin: 0; }
+code, .mono { font-family: var(--font-mono); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { max-width: 1240px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.wrap > * { min-width: 0; }
+
+/* ---------- Mockup-only chrome (not part of the product) ---------- */
+.doc-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.doc-head h1 { font-family: var(--font-display); font-weight: 600; font-size: 28px; letter-spacing: -.01em; }
+.doc-head p { margin: 2px 0 0; color: var(--muted); max-width: 70ch; }
+.round { width: 44px; height: 44px; border-radius: 50%; background: var(--panel); color: var(--ink); display: grid; place-items: center; }
+.round svg { width: 19px; height: 19px; }
+.sec-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.sec-title h2 { font-family: var(--font-display); font-weight: 600; font-size: 20px; }
+.sec-title span { color: var(--muted); font-size: 14px; }
+.demo-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 16px; margin-bottom: 14px; font-size: 13px; color: var(--muted); }
+.demo-bar b { font-weight: 600; color: var(--muted); margin-right: 4px; }
+.demo-bar button { padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--text); background: var(--panel); }
+.demo-bar button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+
+/* ---------- Replay layout (simplified copy of the real page) ---------- */
+.replay-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px; align-items: start; }
+.theatre { min-width: 0; display: grid; gap: 12px; padding: 18px; border-radius: 24px; background: var(--panel); }
+.frame { border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+.chrome { display: flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; background: var(--panel-2); }
+.chrome i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.url { margin-left: 10px; padding: 4px 12px; border-radius: 999px; background: var(--panel); color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+.viewport { aspect-ratio: 900 / 520; background: #f6f5f1; padding: 5% 4%; display: grid; grid-template-columns: 2fr 1fr; gap: 4%; align-content: start; }
+.viewport .blk { background: #fff; border: 1px solid #e7e5de; border-radius: 12px; }
+.viewport .h { grid-column: 1 / -1; height: 9%; min-height: 18px; width: 38%; border-radius: 8px; background: #1c1c1e; opacity: .85; }
+.viewport .col { display: grid; gap: 10px; align-content: start; }
+.viewport .col .blk { height: 54px; }
+.viewport aside.blk { height: 210px; position: relative; }
+.viewport aside .co { position: absolute; left: 8%; right: 8%; bottom: 14%; height: 34px; border-radius: 999px; background: #2f6fed; }
+.scrub { position: relative; height: 46px; border-radius: 10px; overflow-x: clip; overflow-clip-margin: 8px; }
+.scrub .track { position: absolute; left: 0; right: 0; top: 18px; height: 6px; border-radius: 6px; background: var(--panel-2); }
+.scrub .rz { position: absolute; top: 4px; bottom: 8px; border-radius: 8px; background: var(--accent-soft); }
+.scrub .tick { position: absolute; bottom: 0; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--violet); }
+.scrub .tick.r { background: var(--accent); }
+.head-track { position: absolute; inset: 0; pointer-events: none; transform: translateX(var(--p, 0%)); }
+.head { position: absolute; top: 4px; bottom: 0; width: 2px; margin-left: -1px; background: var(--ink); border-radius: 2px; }
+.head::before { content: ""; position: absolute; top: -5px; left: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px var(--panel); }
+.clock { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.clock b { color: var(--ink); font-weight: 500; }
+
+/* ---------- Inspector (matches Inspector.tsx) ---------- */
+.inspector { min-width: 0; display: grid; gap: 6px; align-content: start; padding: 8px; border-radius: 24px; background: var(--panel); }
+.itabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--panel-2); }
+.itabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 0; border-radius: 999px; font-weight: 500; font-size: 14px; color: var(--muted); transition: color .15s ease-out, background-color .15s ease-out; }
+.itabs button:hover { color: var(--ink); }
+.itabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* =====================================================================
+   AI TAB — everything below this line is what frontend-dev builds.
+   ===================================================================== */
+
+/* Tab label extras: bug count (done, bugs > 0) or a quiet "working" dot (queued/running). */
+.tab-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: inline-grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--violet); animation: ai-pulse 1.4s ease-in-out infinite alternate; }
+
+/* Panel: same padding and max height as the Moments list. */
+.ai { display: grid; gap: 10px; padding: 4px; max-height: 560px; overflow: auto; align-content: start; }
+.ai-card { display: grid; gap: 12px; padding: 18px; border-radius: 18px; background: var(--panel-2); }
+.ai-eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.ai-ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--panel); color: var(--muted); }
+.ai-ic svg { width: 17px; height: 17px; }
+.ai-title { margin: 0; font-size: 15px; font-weight: 500; color: var(--ink); line-height: 1.35; }
+.ai-text { margin: 0; font-size: 14px; color: var(--text); line-height: 1.55; }
+.ai-quiet { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+.ai-quiet code, .ai-text code { font-size: 12.5px; color: var(--ink); }
+
+/* .env line with a copy button (not-configured state). */
+.ai-code { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 12px; border-radius: 12px;
+  background: var(--panel); font-family: var(--font-mono); font-size: 12.5px; color: var(--ink); min-width: 0; }
+.ai-code span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-code span em { font-style: normal; color: var(--muted); }
+.ai-copy { flex: none; height: 28px; padding: 0 10px; border-radius: 8px; font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--muted);
+  background: var(--panel-2); transition: color .15s ease-out, background-color .15s ease-out; }
+.ai-copy:hover { color: var(--ink); background: var(--line); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 999px;
+  font-size: 14px; font-weight: 600; transition: transform .15s ease-out, opacity .15s ease-out, background-color .15s ease-out; }
+.btn svg { width: 16px; height: 16px; }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn-primary { width: 100%; background: var(--ink); color: var(--bg); }
+.btn-primary:hover:not(:disabled) { opacity: .9; }
+.btn-primary:disabled { opacity: .5; cursor: default; }
+.btn-secondary { height: 38px; background: var(--panel); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.btn-secondary:hover { background: var(--line); }
+.btn-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); padding: 4px 6px; border-radius: 8px;
+  transition: color .15s ease-out; }
+.btn-link svg { width: 14px; height: 14px; }
+.btn-link:hover:not(:disabled) { color: var(--ink); }
+.btn-link:disabled { opacity: .5; cursor: default; }
+
+/* Working (queued/running): steps + indeterminate bar + skeleton lines */
+.ai-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.ai-steps li { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.ai-steps li[data-s="done"] { color: var(--text); }
+.ai-steps li[aria-current="step"] { color: var(--ink); font-weight: 500; }
+.ai-steps .st { width: 18px; height: 18px; border-radius: 50%; flex: none; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--line); }
+.ai-steps li[data-s="done"] .st { background: var(--violet-soft); color: var(--violet); box-shadow: none; }
+.ai-steps li[data-s="done"] .st svg { width: 11px; height: 11px; }
+.ai-steps li[aria-current="step"] .st { box-shadow: inset 0 0 0 1.5px var(--violet); }
+.ai-steps li[aria-current="step"] .st::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--violet); animation: ai-pulse 1.4s ease-in-out infinite alternate; }
+.ai-steps .t { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-weight: 400; }
+
+.ai-progress { height: 3px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.ai-progress i { display: block; width: 40%; height: 100%; border-radius: 3px; background: var(--violet);
+  animation: ai-indeterminate 1.4s cubic-bezier(.4, 0, .2, 1) infinite; }
+.ai-skel { display: grid; gap: 8px; }
+.ai-skel i { display: block; height: 10px; border-radius: 6px; background: var(--line); animation: ai-pulse 1.4s ease-in-out infinite alternate; }
+.ai-skel i:nth-child(2) { width: 92%; animation-delay: .15s; }
+.ai-skel i:nth-child(3) { width: 64%; animation-delay: .3s; }
+.ai-hint { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--panel); font-size: 13px; color: var(--muted); line-height: 1.45; }
+.ai-hint code { font-size: 12.5px; color: var(--ink); }
+
+/* Done: summary + bug list */
+.ai-summary { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
+.ai-sub { display: flex; align-items: center; gap: 8px; padding: 6px 8px 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.ai-sub b { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.bugs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bug { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 12px 12px 12px 14px; border-radius: 16px; background: var(--panel-2);
+  transition: box-shadow .2s ease-out; }
+.bug[aria-current="true"] { box-shadow: inset 0 0 0 1px var(--violet); }
+.bug-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.bug h4 { grid-column: 1 / -1; margin: 0; font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.35; }
+.bug p { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+/* Severity: label + 3-bar meter, so it never relies on colour alone. high/medium = orange-red, low = grey. */
+.sev { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 7px;
+  font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+.sev .meter { display: inline-flex; align-items: end; gap: 2px; height: 9px; }
+.sev .meter i { width: 3px; border-radius: 1px; background: currentColor; opacity: .3; }
+.sev .meter i:nth-child(1) { height: 4px; } .sev .meter i:nth-child(2) { height: 6.5px; } .sev .meter i:nth-child(3) { height: 9px; }
+.sev-high { background: var(--accent-soft); color: var(--accent); }
+.sev-high .meter i { opacity: 1; }
+.sev-medium { color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.sev-medium .meter i:nth-child(-n+2) { opacity: 1; }
+.sev-low { color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+.sev-low .meter i:nth-child(1) { opacity: 1; }
+
+/* "Jump to 0:42" */
+.jump { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--panel);
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink); white-space: nowrap;
+  transition: background-color .15s ease-out, color .15s ease-out, transform .15s ease-out; }
+.jump svg { width: 9px; height: 9px; }
+.jump:hover { background: var(--violet-soft); color: var(--violet); }
+.jump:active { transform: scale(.96); }
+.no-time { font-family: var(--font-mono); font-size: 12px; color: var(--muted); align-self: center; }
+
+.ai-none { display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 16px; background: var(--panel-2); }
+.ai-none .ai-ic { background: var(--violet-soft); color: var(--violet); }
+
+.ai-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 2px 4px 0 8px; }
+.ai-meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.ai-disclaim { margin: 0; padding: 0 8px 4px; font-size: 12px; color: var(--muted); }
+
+/* Entrance: new state content fades + rises 4px. Bug rows stagger 40ms (set --i on each row). */
+.ai-enter { animation: ai-in .22s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 40ms); }
+
+@keyframes ai-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes ai-pulse { from { opacity: .45; } to { opacity: 1; } }
+@keyframes ai-indeterminate { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+/* Reduced motion: nothing moves. The bar becomes a still 40% segment; the elapsed timer still shows progress. */
+@media (prefers-reduced-motion: reduce) {
+  .ai-enter, .tab-dot, .ai-skel i, .ai-steps li[aria-current="step"] .st::after { animation: none; }
+  .ai-progress i { animation: none; transform: none; }
+  .ai-skel i { opacity: .7; }
+  .btn, .jump, .bug, .itabs button, .ai-copy, .btn-link { transition: none; }
+  .btn:active:not(:disabled), .jump:active { transform: none; }
+}
+
+/* ---------- Sessions page (Bricolage + Figtree, like Tiny Shop) ---------- */
+.shop-type { font-family: var(--font-shop); }
+.page-head { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.page-head h1 { font-family: var(--font-shop-display); font-size: 32px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.page-head p { margin: 0; color: var(--muted); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; font-size: 14px; font-weight: 500;
+  background: var(--panel); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); transition: background-color .15s ease-out, color .15s ease-out, transform .15s ease-out; }
+.chip:hover { background: var(--panel-2); color: var(--ink); }
+.chip:active { transform: scale(.95); }
+.chip .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); box-shadow: none; }
+.chip[aria-pressed="true"] .count { color: inherit; opacity: .6; }
+.tcard { min-width: 0; border-radius: 24px; background: var(--panel); padding: 14px; }
+.tbl-scroll { position: relative; overflow-x: auto; } /* relative: keeps the sr-only header inside the scroller */
+table { width: 100%; min-width: 900px; border-collapse: collapse; }
+th { background: var(--panel-2); color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; text-align: left; padding: 11px 14px; white-space: nowrap; }
+th:first-child { border-radius: 10px 0 0 10px; } th:last-child { border-radius: 0 10px 10px 0; }
+td { padding: 14px; border-bottom: 1px solid var(--line); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr { cursor: pointer; transition: background-color .15s ease-out; }
+tbody tr:hover { background: var(--panel-2); }
+.num { text-align: right; }
+td small { display: block; color: var(--muted); font-size: 13px; }
+td .t { font-family: var(--font-mono); font-size: 14px; }
+.strip { position: relative; width: 150px; height: 22px; border-radius: 6px; background: var(--panel-2); overflow: hidden; }
+.strip i { position: absolute; top: 5px; width: 3px; height: 12px; border-radius: 2px; background: var(--muted); opacity: .8; }
+.strip i.r { background: var(--accent); opacity: 1; }
+.out { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.out.bad { color: var(--accent); } .out.ok { color: var(--violet); }
+.out svg { width: 14px; height: 14px; }
+.play { width: 34px; height: 34px; border-radius: 50%; background: var(--panel-2); color: var(--ink); display: inline-grid; place-items: center; }
+
+/* AI marker in the new "AI" column */
+.ai-mark { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 8px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.ai-mark .k { font-family: var(--font-mono); font-weight: 500; font-size: 11.5px; letter-spacing: .02em; opacity: .8; }
+.ai-mark.bad { background: var(--accent-soft); color: var(--accent); }
+.ai-mark.ok { background: var(--violet-soft); color: var(--violet); }
+.ai-mark.plain { background: var(--panel-2); color: var(--muted); }
+.ai-mark .tab-dot { margin-right: 1px; }
+.ai-none-cell { color: var(--muted); }
+
+/* ---------- States gallery + spec ---------- */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; align-items: start; }
+.gcell { display: grid; gap: 8px; min-width: 0; }
+.gcell > span { font-size: 13px; color: var(--muted); padding-left: 6px; }
+.gcell > span b { color: var(--ink); font-weight: 600; }
+.spec { border-radius: 24px; background: var(--panel); padding: 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.spec ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.spec pre { margin: 0; padding: 16px; border-radius: 16px; background: var(--panel-2); color: var(--ink); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; overflow-x: auto; }
+
+@media (max-width: 1180px) { .replay-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .theatre { padding: 12px; }
+  .doc-head h1 { font-size: 24px; }
+  .page-head h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <div>
+      <h1>AI summary</h1>
+      <p>Phase 5 mockup: the AI tab on the Replay page in every state, and the AI marker and filter on the Sessions page. Based on dashboard-mockup.html and the real dashboard tokens.</p>
+    </div>
+    <button class="round" id="theme" aria-label="Switch light or dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </header>
+
+  <!-- ===================== 1. Live Replay page ===================== -->
+  <section aria-labelledby="s1">
+    <div class="sec-title"><h2 id="s1">Replay page, AI tab</h2><span>Click "Analyze visit", then a "jump to" button.</span></div>
+    <div class="demo-bar" role="group" aria-label="Mockup state (not part of the product)">
+      <b>Mockup state:</b>
+      <button data-state="unconfigured">Not set up</button>
+      <button data-state="idle" aria-pressed="true">Not analysed</button>
+      <button data-state="queued">Queued</button>
+      <button data-state="running">Running</button>
+      <button data-state="done">Done</button>
+      <button data-state="clean">Done, no bugs</button>
+      <button data-state="failed">Failed</button>
+    </div>
+    <div class="replay-grid">
+      <div class="theatre">
+        <div class="frame">
+          <div class="chrome"><i></i><i></i><i></i><span class="url">localhost:5173/</span></div>
+          <div class="viewport" aria-hidden="true">
+            <div class="h"></div>
+            <div class="col"><div class="blk"></div><div class="blk"></div><div class="blk"></div></div>
+            <aside class="blk"><span class="co"></span></aside>
+          </div>
+        </div>
+        <div class="scrub" aria-hidden="true">
+          <div class="track"></div>
+          <div class="rz" style="left:63%;width:8%"></div>
+          <i class="tick" style="left:9%"></i><i class="tick" style="left:15%"></i><i class="tick" style="left:21%"></i>
+          <i class="tick" style="left:27%"></i><i class="tick" style="left:34%"></i><i class="tick" style="left:41%"></i><i class="tick" style="left:56%"></i>
+          <i class="tick r" style="left:65.6%"></i><i class="tick r" style="left:67%"></i><i class="tick r" style="left:68.4%"></i><i class="tick r" style="left:69.6%"></i><i class="tick r" style="left:70.8%"></i>
+          <div class="head-track" id="headtrack" style="--p:12%"><div class="head"></div></div>
+        </div>
+        <span class="clock"><b id="now">0:08</b> / 1:04</span>
+      </div>
+
+      <div class="inspector">
+        <div class="itabs" role="tablist" aria-label="Visit details">
+          <button role="tab" aria-selected="false">Moments</button>
+          <button role="tab" aria-selected="false">Visitor</button>
+          <button role="tab" aria-selected="true" id="ai-tab">AI</button>
+        </div>
+        <div id="live" role="tabpanel" aria-labelledby="ai-tab"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 2. All states ===================== -->
+  <section aria-labelledby="s2">
+    <div class="sec-title"><h2 id="s2">Every state at a glance</h2><span>Inspector width 330px, as on the real page.</span></div>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <!-- ===================== 3. Sessions page ===================== -->
+  <section aria-labelledby="s3" class="shop-type" style="display:grid;grid-template-columns:minmax(0,1fr);gap:18px">
+    <div class="sec-title" style="margin:0"><h2 id="s3" style="font-family:var(--font-display)">Sessions page</h2><span>New "AI" column and "AI flagged" filter.</span></div>
+    <div class="page-head">
+      <div><h1>Sessions</h1><p>Every recorded visit, newest first. Updates every 10 seconds.</p></div>
+      <div class="chips" role="group" aria-label="Filter visits">
+        <button class="chip" aria-pressed="true" data-f="all">All <span class="count">6</span></button>
+        <button class="chip" aria-pressed="false" data-f="rage">Rage clicks <span class="count">2</span></button>
+        <button class="chip" aria-pressed="false" data-f="calm">No problems <span class="count">4</span></button>
+        <button class="chip" aria-pressed="false" data-f="ai">AI flagged <span class="count">2</span></button>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>Started</th><th>Visit</th><th>Clicks over time</th><th class="num">Events</th><th class="num">Clicks</th><th>Outcome</th><th>AI</th><th><span class="sr-only">Replay</span></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 4. Handoff notes ===================== -->
+  <section class="spec" aria-labelledby="s4">
+    <h2 id="s4" style="font-family:var(--font-display);font-size:20px;font-weight:600">Notes for frontend-dev</h2>
+    <ol>
+      <li>The AI tab replaces the placeholder in <code>Inspector.tsx</code>. Everything sits in a <code>.ai</code> panel (padding 4px, max-height 560px, scrolls like Moments).</li>
+      <li>State comes from <code>GET /config/ai</code> + <code>GET /sessions/{id}/analysis</code>: not configured → "Not set up"; 404 → "Not analysed"; then <code>queued</code> / <code>running</code> / <code>done</code> / <code>failed</code>.</li>
+      <li>Severity uses a label plus a 3-bar meter (never colour alone): high = filled orange-red, medium = outlined orange-red, low = grey. Sort high → low, then by time.</li>
+      <li>"Jump to" calls the existing <code>onSeek(atMs)</code> and marks that bug row with <code>aria-current="true"</code> (violet ring). No button when <code>atMs</code> is null: show "no time" in mono instead.</li>
+      <li>Tab label: "AI" + orange count when bugs &gt; 0, or a pulsing violet dot while queued/running. Nothing extra otherwise.</li>
+      <li>Sessions: new "AI" column. <code>aiStatus</code> null → "—"; done with bugs → orange "AI · N bugs"; done, 0 bugs → violet "AI · no bugs"; queued/running → grey "AI · analysing" with dot; failed → grey "AI · failed". Chip "AI flagged" = <code>aiBugCount &gt; 0</code>.</li>
+      <li>Live regions: the AI panel body has <code>aria-live="polite"</code> so screen readers hear "Analysis done, 2 possible bugs". The progress bar has <code>role="progressbar"</code> with no value (indeterminate) and an <code>aria-label</code>.</li>
+    </ol>
+    <pre id="css-spec"></pre>
+  </section>
+</div>
+
+<script>
+(function () {
+  // ---------- Icons ----------
+  var I = {
+    key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3M16 7l3 3M14 9l2 2"/></svg>',
+    doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>',
+    redo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4h-4"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>',
+    flame: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s5 4.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S9 11 10.5 11C10.5 7 12 2 12 2z"/></svg>'
+  };
+  var MODEL = "claude-haiku-5-5", DUR = 64000;
+
+  var BUGS = [
+    { title: "Checkout does nothing when the cart is over $100", severity: "high", atMs: 42000,
+      evidence: "Checkout was pressed 6 times with a $123 cart. The page never changed and no order was placed." },
+    { title: "No error message after a failed checkout", severity: "medium", atMs: 43000,
+      evidence: "After each press the visitor saw no message, so they kept clicking and then left." },
+    { title: "Email field doesn't say what format it needs", severity: "low", atMs: null,
+      evidence: "The visitor focused the email field twice before typing. Weak signal." }
+  ];
+  var SUMMARY = "The visitor added 4 mugs and 3 T-shirts ($123), typed an email and pressed Checkout. Nothing happened, so they pressed it 5 more times in 2 seconds, then left without ordering.";
+  var SUMMARY_CLEAN = "The visitor added a mug and a T-shirt ($37), typed an email and checked out. The order went through on the first try and they saw the confirmation message.";
+
+  function clock(ms) { var s = Math.round(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+  function meter() { return '<span class="meter" aria-hidden="true"><i></i><i></i><i></i></span>'; }
+  var sevLabel = { high: "High", medium: "Medium", low: "Low" };
+
+  // ---------- AI panel renderer: one function per state ----------
+  function render(state, opts) {
+    opts = opts || {};
+    var h = "";
+    if (state === "unconfigured") {
+      h += '<div class="ai-card ai-enter">' +
+        '<span class="ai-ic">' + I.key + "</span>" +
+        '<p class="ai-title">AI summaries aren’t set up yet</p>' +
+        '<p class="ai-quiet">Add your Claude API key to <code>apps/api-py/.env</code>, then restart the API and the worker.</p>' +
+        '<div class="ai-code"><span>ANTHROPIC_API_KEY=<em>sk-ant-…</em></span><button class="ai-copy" type="button" data-copy>Copy</button></div>' +
+        '<p class="ai-quiet">Get a key at console.anthropic.com. Replay only sends Claude a short text outline of the visit, never what people typed.</p>' +
+        "</div>";
+    } else if (state === "idle") {
+      h += '<div class="ai-card ai-enter">' +
+        '<span class="ai-ic">' + I.doc + "</span>" +
+        '<p class="ai-title">Get a summary of this visit</p>' +
+        '<p class="ai-quiet">Claude reads an outline of the clicks and pages (never what was typed) and points out anything that looks like a bug. Takes about 10 seconds.</p>' +
+        '<button class="btn btn-primary" type="button" data-act="analyze">Analyze visit</button>' +
+        '<span class="ai-meta">Model ' + MODEL + "</span>" +
+        "</div>";
+    } else if (state === "queued" || state === "running") {
+      var q = state === "queued";
+      h += '<div class="ai-card ai-enter">' +
+        '<div class="ai-eyebrow"><span>' + (q ? "Waiting" : "Analysing") + '</span><span class="ai-meta" style="text-transform:none;letter-spacing:0">' + (opts.elapsed || (q ? "0:02" : "0:05")) + "</span></div>" +
+        '<div class="ai-progress" role="progressbar" aria-label="Analysing this visit"><i></i></div>' +
+        '<ol class="ai-steps">' +
+        (q ? '<li aria-current="step"><span class="st"></span>Waiting for the worker</li><li><span class="st"></span>Claude reads the visit</li>'
+           : '<li data-s="done"><span class="st">' + I.check + '</span>Waiting for the worker</li><li aria-current="step"><span class="st"></span>Claude reads the visit</li>') +
+        "</ol>" +
+        '<div class="ai-skel" aria-hidden="true"><i></i><i></i><i></i></div>' +
+        "</div>";
+      if (opts.slow) h += '<p class="ai-hint ai-enter">Still waiting after 30 seconds? Check the worker is running: <code>npm run worker</code></p>';
+      h += '<div class="ai-foot"><span class="ai-meta">' + MODEL + '</span><button class="btn-link" type="button" disabled>' + I.redo + "Re-analyze</button></div>";
+    } else if (state === "done" || state === "clean") {
+      var bugs = state === "done" ? BUGS : [];
+      h += '<div class="ai-card ai-enter"><div class="ai-eyebrow"><span>Summary</span></div><p class="ai-summary">' + (state === "done" ? SUMMARY : SUMMARY_CLEAN) + "</p></div>";
+      if (bugs.length) {
+        h += '<div class="ai-sub ai-enter" style="--i:1">Possible bugs <b>' + bugs.length + "</b></div><ol class=\"bugs\">";
+        bugs.forEach(function (b, i) {
+          var jump = b.atMs == null ? '<span class="no-time">no time</span>'
+            : '<button class="jump" type="button" data-at="' + b.atMs + '" aria-label="Jump to ' + clock(b.atMs) + '">' + I.play + clock(b.atMs) + "</button>";
+          h += '<li class="bug ai-enter" style="--i:' + (i + 2) + '"' + (opts.current === i ? ' aria-current="true"' : "") + ' data-i="' + i + '">' +
+            '<div class="bug-top"><span class="sev sev-' + b.severity + '">' + meter() + sevLabel[b.severity] + "</span></div>" + jump +
+            "<h4>" + b.title + "</h4><p>" + b.evidence + "</p></li>";
+        });
+        h += "</ol>";
+      } else {
+        h += '<div class="ai-none ai-enter" style="--i:1"><span class="ai-ic">' + I.check + '</span><div><p class="ai-title" style="font-size:14px">No bugs spotted</p><p class="ai-quiet">Nothing in this visit looks broken.</p></div></div>';
+      }
+      h += '<div class="ai-foot ai-enter" style="--i:5"><span class="ai-meta">' + MODEL + " · 14 Oct, 14:32</span>" +
+        '<button class="btn-link" type="button" data-act="analyze">' + I.redo + "Re-analyze</button></div>" +
+        '<p class="ai-disclaim ai-enter" style="--i:5">AI can be wrong. Watch the moment before you fix anything.</p>';
+    } else if (state === "failed") {
+      h += '<div class="ai-card ai-enter">' +
+        '<span class="ai-ic">' + I.alert + "</span>" +
+        '<p class="ai-title">Couldn’t analyse this visit</p>' +
+        '<p class="ai-quiet">Claude took too long to answer. Nothing was saved.</p>' +
+        '<div><button class="btn btn-secondary" type="button" data-act="analyze">' + I.redo + "Retry</button></div>" +
+        '<span class="ai-meta">' + MODEL + " · 14:31</span>" +
+        "</div>";
+    }
+    return '<div class="ai" aria-live="polite">' + h + "</div>";
+  }
+  function tabLabel(state) {
+    if (state === "queued" || state === "running") return 'AI<span class="tab-dot" aria-hidden="true"></span><span class="sr-only">, analysing</span>';
+    if (state === "done") return 'AI<span class="tab-count" aria-label="' + BUGS.length + ' possible bugs">' + BUGS.length + "</span>";
+    return "AI";
+  }
+
+  // ---------- Live demo ----------
+  var live = document.getElementById("live"), tab = document.getElementById("ai-tab"), head = document.getElementById("headtrack"), now = document.getElementById("now");
+  var timers = [], current = null;
+  function setState(s, opts) {
+    live.innerHTML = render(s, opts);
+    tab.innerHTML = tabLabel(s);
+    document.querySelectorAll("[data-state]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.state === s)); });
+  }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function analyze() {
+    clearTimers(); current = null;
+    setState("queued", { elapsed: "0:00" });
+    timers.push(setTimeout(function () { setState("running", { elapsed: "0:01" }); }, 1200));
+    timers.push(setTimeout(function () { setState("running", { elapsed: "0:03" }); }, 3000));
+    timers.push(setTimeout(function () { setState("done"); }, 4200));
+  }
+  document.querySelectorAll("[data-state]").forEach(function (b) {
+    b.addEventListener("click", function () { clearTimers(); current = null; setState(b.dataset.state); });
+  });
+  live.addEventListener("click", function (e) {
+    var t = e.target.closest("button"); if (!t) return;
+    if (t.dataset.act === "analyze") analyze();
+    if (t.hasAttribute("data-copy")) { t.textContent = "Copied"; setTimeout(function () { t.textContent = "Copy"; }, 1400); }
+    if (t.dataset.at) {
+      var at = +t.dataset.at;
+      head.style.setProperty("--p", (at / DUR * 100).toFixed(2) + "%");
+      now.textContent = clock(at);
+      current = +t.closest(".bug").dataset.i;
+      live.querySelectorAll(".bug").forEach(function (li) { if (+li.dataset.i === current) li.setAttribute("aria-current", "true"); else li.removeAttribute("aria-current"); });
+    }
+  });
+  setState("idle");
+
+  // ---------- Gallery ----------
+  var cells = [
+    ["unconfigured", "1 · Not set up", "No ANTHROPIC_API_KEY. Calm, not an error."],
+    ["idle", "2 · Not analysed", "GET analysis returns 404."],
+    ["queued", "3a · Queued", "Waiting for the Celery worker."],
+    ["queued-slow", "3b · Queued > 30 s", "Hint to start the worker."],
+    ["running", "3c · Running", "Claude is working."],
+    ["done", "4a · Done, 3 bugs", "Second bug row shows the 'just jumped' ring."],
+    ["clean", "4b · Done, no bugs", "Good outcome = violet."],
+    ["failed", "5 · Failed", "Short safe message from error + Retry."]
+  ];
+  document.getElementById("gallery").innerHTML = cells.map(function (c) {
+    var s = c[0] === "queued-slow" ? "queued" : c[0];
+    var opts = c[0] === "queued-slow" ? { slow: true, elapsed: "0:34" } : c[0] === "done" ? { current: 1 } : {};
+    return '<div class="gcell"><span><b>' + c[1] + "</b> — " + c[2] + '</span><div class="inspector"><div class="itabs" role="presentation"><button tabindex="-1">Moments</button><button tabindex="-1">Visitor</button><button tabindex="-1" aria-selected="true">' + tabLabel(s) + "</button></div>" + render(s, opts) + "</div></div>";
+  }).join("");
+
+  // ---------- Sessions table ----------
+  var rows = [
+    { t: "14:28", day: "Today", page: "localhost:5173/", sub: "Edge · 1:04", ev: 58, cl: 12, rage: 6, ai: { s: "done", n: 3 }, clicks: [9,15,21,27,34,41,56,65.6,67,68.4,69.6,70.8] },
+    { t: "14:20", day: "Today", page: "localhost:5173/", sub: "Edge · 0:41", ev: 46, cl: 9, rage: 5, ai: { s: "running" }, clicks: [10,22,30,44,58,61,64,67,70] },
+    { t: "14:11", day: "Today", page: "localhost:5173/", sub: "Chrome · 0:22", ev: 24, cl: 3, rage: 0, ai: { s: "done", n: 0 }, clicks: [18,46,86] },
+    { t: "13:58", day: "Today", page: "localhost:5173/", sub: "Edge · 0:36", ev: 30, cl: 5, rage: 0, ai: { s: "done", n: 1 }, clicks: [12,26,40,55,86] },
+    { t: "13:40", day: "Today", page: "localhost:5173/", sub: "Firefox · 0:12", ev: 18, cl: 2, rage: 0, ai: { s: "failed" }, clicks: [20,84] },
+    { t: "13:02", day: "Today", page: "localhost:5173/", sub: "Edge · 0:15", ev: 18, cl: 2, rage: 0, ai: null, clicks: [30,80] }
+  ];
+  function aiMark(a) {
+    if (!a) return '<span class="ai-none-cell" aria-label="Not analysed">—</span>';
+    if (a.s === "done" && a.n > 0) return '<span class="ai-mark bad"><span class="k">AI</span>· ' + a.n + (a.n === 1 ? " bug" : " bugs") + "</span>";
+    if (a.s === "done") return '<span class="ai-mark ok"><span class="k">AI</span>· no bugs</span>';
+    if (a.s === "failed") return '<span class="ai-mark plain"><span class="k">AI</span>· failed</span>';
+    return '<span class="ai-mark plain"><span class="tab-dot" aria-hidden="true"></span><span class="k">AI</span>· analysing</span>';
+  }
+  var filter = "all";
+  function renderRows() {
+    document.getElementById("rows").innerHTML = rows.filter(function (r) {
+      if (filter === "rage") return r.rage > 0;
+      if (filter === "calm") return r.rage === 0;
+      if (filter === "ai") return r.ai && r.ai.s === "done" && r.ai.n > 0;
+      return true;
+    }).map(function (r) {
+      return "<tr tabindex=\"0\"><td><span class=\"t\">" + r.t + "</span><small style=\"font-size:12px\">" + r.day + "</small></td>" +
+        "<td><b style=\"font-weight:600\">" + r.page + "</b><small>" + r.sub + "</small></td>" +
+        '<td><div class="strip" role="img" aria-label="' + r.cl + ' clicks">' + r.clicks.map(function (p, i) { return '<i class="' + (r.rage && i >= r.clicks.length - r.rage ? "r" : "") + '" style="left:' + p + '%"></i>'; }).join("") + "</div></td>" +
+        '<td class="num">' + r.ev + '</td><td class="num">' + r.cl + "</td>" +
+        "<td>" + (r.rage ? '<span class="out bad">' + I.flame + "Rage clicks ×" + r.rage + "</span>" : '<span class="out ok">No problems found</span>') + "</td>" +
+        "<td>" + aiMark(r.ai) + "</td>" +
+        '<td class="num"><span class="play">' + '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' + "</span></td></tr>";
+    }).join("");
+  }
+  document.querySelectorAll(".chip").forEach(function (c) {
+    c.addEventListener("click", function () {
+      filter = c.dataset.f;
+      document.querySelectorAll(".chip").forEach(function (x) { x.setAttribute("aria-pressed", String(x === c)); });
+      renderRows();
+    });
+  });
+  renderRows();
+
+  // ---------- Copy-ready CSS for the handoff (taken from this file's own <style>) ----------
+  var css = document.querySelector("style").textContent;
+  var start = css.indexOf("/* Tab label extras"), end = css.indexOf("/* ---------- Sessions page");
+  var sessStart = css.indexOf("/* AI marker"), sessEnd = css.indexOf("/* ---------- States gallery");
+  document.getElementById("css-spec").textContent = css.slice(start, end).trim() + "\n\n" + css.slice(sessStart, sessEnd).trim();
+
+  // ---------- Theme ----------
+  var root = document.documentElement;
+  if (location.hash === "#light") root.setAttribute("data-theme", "light");
+  document.getElementById("theme").addEventListener("click", function () {
+    root.setAttribute("data-theme", root.getAttribute("data-theme") === "light" ? "dark" : "light");
+  });
+})();
+</script>
+</body>
+</html>

@@ -3,12 +3,13 @@
 import type { SessionSummary } from "@replay/shared";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { aiMarkerLabel, isAiFlagged } from "../analysis";
 import { browserName, formatDay, formatDuration, formatTime, shortUrl } from "../format";
 import { IconFlame, IconPlay } from "../icons";
 import { Notice } from "../ui";
 import { isReplayable, useSessions } from "../useSessions";
 
-type Filter = "all" | "rage" | "calm";
+type Filter = "all" | "rage" | "calm" | "ai";
 
 export function SessionsPage() {
   const { sessions, reload: load } = useSessions(); // refreshes every 10 seconds
@@ -23,9 +24,11 @@ export function SessionsPage() {
     all: all.length,
     rage: all.filter((s) => s.hasRage).length,
     calm: all.filter((s) => !s.hasRage).length,
+    ai: all.filter(isAiFlagged).length,
   };
   const shown = all.filter((s) => {
-    const matchesFilter = filter === "all" || (filter === "rage") === s.hasRage;
+    const matchesFilter =
+      filter === "all" || (filter === "ai" ? isAiFlagged(s) : (filter === "rage") === s.hasRage);
     const text = `${shortUrl(s.url)} ${browserName(s.userAgent)}`.toLowerCase();
     return matchesFilter && text.includes(query);
   });
@@ -65,6 +68,12 @@ export function SessionsPage() {
             onClick={() => setFilter("calm")}
             label="No problems"
             count={counts.calm}
+          />
+          <Chip
+            active={filter === "ai"}
+            onClick={() => setFilter("ai")}
+            label="AI flagged"
+            count={counts.ai}
           />
         </div>
       </div>
@@ -124,8 +133,8 @@ function SessionsTable({ sessions }: { sessions: SessionSummary[] }) {
   const open = (id: string) => navigate(`/sessions/${id}`);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[820px] border-collapse">
+    <div className="relative overflow-x-auto">
+      <table className="w-full min-w-[900px] border-collapse">
         <thead>
           <tr>
             <th className={`${th} rounded-l-[10px]`}>Started</th>
@@ -134,6 +143,7 @@ function SessionsTable({ sessions }: { sessions: SessionSummary[] }) {
             <th className={`${th} text-right`}>Events</th>
             <th className={`${th} text-right`}>Clicks</th>
             <th className={th}>Outcome</th>
+            <th className={th}>AI</th>
             <th className={`${th} rounded-r-[10px]`}>
               <span className="sr-only">Replay</span>
             </th>
@@ -166,6 +176,9 @@ function SessionsTable({ sessions }: { sessions: SessionSummary[] }) {
               <td className="px-3.5 py-3.5 text-right text-ink tabular-nums">{s.clickCount}</td>
               <td className="px-3.5 py-3.5 whitespace-nowrap">
                 <Outcome session={s} />
+              </td>
+              <td className="px-3.5 py-3.5 whitespace-nowrap">
+                <AiMark session={s} />
               </td>
               <td className="px-3.5 py-3.5 text-right">
                 <span className="inline-grid h-[34px] w-[34px] place-items-center rounded-full bg-panel-2 text-ink transition group-hover:scale-105 group-hover:bg-violet group-hover:text-on-color">
@@ -210,6 +223,38 @@ function Outcome({ session }: { session: SessionSummary }) {
   }
   if (session.clickCount === 0) return <span className="text-muted">No clicks</span>;
   return <span className="font-medium text-violet">No problems found</span>;
+}
+
+/** The AI column: what Claude found in this visit (or "—" if nobody asked it to look). */
+function AiMark({ session }: { session: SessionSummary }) {
+  const label = aiMarkerLabel(session);
+  if (session.aiStatus === null) {
+    return (
+      <span className="text-muted" aria-label="Not analysed">
+        —
+      </span>
+    );
+  }
+  const tone =
+    session.aiStatus === "done"
+      ? session.aiBugCount > 0
+        ? "bg-accent-soft text-accent"
+        : "bg-violet-soft text-violet"
+      : "bg-panel-2 text-muted";
+  return (
+    <span
+      className={`inline-flex h-6 items-center gap-1.5 rounded-lg px-[9px] text-[12.5px] font-semibold whitespace-nowrap ${tone}`}
+    >
+      {(session.aiStatus === "queued" || session.aiStatus === "running") && (
+        <span
+          className="h-1.5 w-1.5 rounded-full bg-violet motion-safe:animate-ai-pulse"
+          aria-hidden="true"
+        />
+      )}
+      <span className="font-mono text-[11.5px] font-medium tracking-[0.02em] opacity-80">AI</span>
+      <span aria-hidden="true">·</span> {label}
+    </span>
+  );
 }
 
 /** Grey placeholder rows while the visits load. */

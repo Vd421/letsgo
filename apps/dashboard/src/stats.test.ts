@@ -12,6 +12,8 @@ function visit(fields: Partial<SessionSummary> & { started?: Date }): SessionSum
     id: `visit-${nextId}`,
     url: "http://localhost:5173/",
     userAgent: null,
+    aiStatus: null,
+    aiBugCount: 0,
     startedAt: started.toISOString(),
     endedAt: null,
     eventCount: 20,

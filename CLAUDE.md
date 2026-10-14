@@ -45,6 +45,8 @@ Run from the repo root:
 - `npm test`             → dashboard tests (Vitest, apps/dashboard/src/**/*.test.ts)
 - `npm run dashboard`    → dashboard (Vite) on http://localhost:5174
 - `npm run shop`         → demo shop (Vite) on http://localhost:5173 (port fixed: the API's CORS allows it)
+- `npm run worker`       → Celery worker that runs AI analysis jobs (needs Redis + the API's .venv; Windows: --pool=solo)
+- `npm run e2e`          → Playwright browser tests (apps/dashboard/e2e, Edge, API mocked; starts the dashboard if needed)
 
 Python API, run from apps/api-py with the venv active (`source .venv/Scripts/activate`):
 - `pip install -r requirements-dev.txt` → install Python packages into .venv
@@ -53,6 +55,9 @@ Python API, run from apps/api-py with the venv active (`source .venv/Scripts/act
 - `ruff check .` / `ruff format .` → lint / auto-format Python
 - `alembic revision --autogenerate -m "msg"` → after editing app/models.py: write a migration
 - `alembic upgrade head` → apply migrations
+- AI analysis needs 3 things running: the API, Redis (`npm run services:up`) and the worker (`npm run worker`),
+  plus ANTHROPIC_API_KEY in the root .env (costs money per analysis; optional CLAUDE_MODEL).
+- Don't run two pytest runs at once: they share the `replay_test` database and fail randomly.
 
 Docker Desktop must be running first ("Engine running").
 
@@ -115,7 +120,17 @@ Empty visits (eventCount < 3) are hidden everywhere. Steps 0-6 merged as PR #7 o
 8 Vitest (25 tests: format/stats/moments, pass in any time zone) + `npm test` in CI, branch
 feature/dashboard-tests. Step 7 polish skipped by vd's choice ("finish this phase and move on").
 PHASE 3 COMPLETE once the tests PR is merged. Open item: delete test-robot visits only if vd agrees.
-Next: Phase 4 (event storage → AWS S3) or Phase 5 (Celery + Claude AI summaries): ask vd which first.
+PHASE 3 tests merged as PR #8.
+Phase 5 (Celery + Claude AI summaries/bug flags), branch `feature/ai-summaries`, run by an agent team
+(.claude/team/manager.md) on 2026-10-14: table `session_analyses` (migration 5479c6336b4d), Celery app
+(app/celery_app.py, app/jobs.py: idempotent, retries with backoff), privacy-safe text digest (app/digest.py:
+URL path only, ids/tokens → ":id", typed text never sent, console errors redacted), prompts.py + ai.py (Claude via
+a strict `report_analysis` tool, model from CLAUDE_MODEL, default claude-haiku-5-5), routes POST/GET
+/sessions/{id}/analysis + GET /config/ai, SessionSummary gains aiStatus/aiBugCount. Analysis is manual
+("Analyze visit" button), never automatic. Dashboard: AI tab (replay/AiPanel.tsx, useAnalysis.ts polling),
+Sessions "AI" column + "AI flagged" chip. Design: docs/design/ai-summary.html. No ANTHROPIC_API_KEY yet:
+without it the API answers 503 and the dashboard shows set-up steps; all tests use a fake Claude.
+Next: Phase 4 (event storage → AWS S3) or Phase 6 (deploy + evals): ask vd.
 Note: on this Windows laptop `uvicorn --reload` got stuck twice (old code kept answering). Run the API
 without --reload and restart it after API changes; check for leftovers on port 4000.
 Full learning notes of everything so far: notes/everything-so-far.md.

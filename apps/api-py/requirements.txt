@@ -6,3 +6,6 @@ pydantic-settings==2.15.0   # reads settings from .env (like our old config.ts)
 sqlalchemy==2.1.2           # talks to the database from Python (like Prisma Client)
 psycopg[binary]==3.3.6      # the Postgres "driver" SQLAlchemy uses under the hood
 alembic==1.20.0             # database migrations (like `prisma migrate`)
+celery==5.6.3               # background job runner (runs slow jobs outside the web server)
+redis==8.1.0                # lets Celery talk to Redis, its job queue
+anthropic==1.13.0           # official Claude API client

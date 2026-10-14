@@ -2,4 +2,5 @@
 -r requirements.txt
 pytest==9.1.1    # test runner (like Vitest)
 httpx==0.28.1    # HTTP client used by FastAPI's TestClient (like Supertest)
+httpx2==2.13.1   # HTTP library the anthropic package uses (tests build fake API errors with it)
 ruff==0.16.10    # linter + formatter (like ESLint + Prettier)
